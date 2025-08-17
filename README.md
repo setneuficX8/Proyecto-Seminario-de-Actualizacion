@@ -31,6 +31,8 @@ Lo primero es instalar el npm y nodejs en este caso se mostrara en como se hace 
 ````bash 
 sudo pacman -S npm nodejs 
 ```` 
+![Proceso](/src/Img/250817_00h53m56s_screenshot.png)
+
 una vez instalado se podra crear un nuevo proyecto parv react, nosotros decidimos iniciar el proyecto con **vite** que es una herramienta de compilacion que tiene como objetivo proporcionar una herramientv de desarrollo mas rapida y agil parv proyectos web modernos.
 > **Nota** El proceso de creación del proyecto es igual tanto para linux como para Windows. 
 ````bash 
