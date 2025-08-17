@@ -24,18 +24,30 @@
 - Otro detalle es que React solo se encarga de la parte visual, la interfaz de usuario. Entonces, si quiere crear una aplicación más completa será necesario añadir más recursos como por ejemplo **React Router** o en su defecto utilizar su framework, **Next.js**.
 
 # Un resumen de como empezar un nuevo proyecto
+Para instalar Node.js en Windows, primero debes descargar el instalador desde el sitio oficial de Node.js. Luego, ejecuta el archivo MSI y sigue los pasos del asistente de instalación, aceptando los términos y seleccionando la ubicación deseada. Finalmente, verifica la instalación abriendo la CMD y ejecutando node -v npm -v . Si todo salió bien, deberías ver la versión de Node.js y npm.
 
-Lo primero es instalar el npm y nodejs en mi caso lo mostrare en como se hace en arch linux 
+
+Lo primero es instalar el npm y nodejs en este caso se mostrara en como se hace en arch linux 
 ````bash 
 sudo pacman -S npm nodejs 
 ```` 
 una vez instalado se podra crear un nuevo proyecto parv react, nosotros decidimos iniciar el proyecto con **vite** que es una herramienta de compilacion que tiene como objetivo proporcionar una herramientv de desarrollo mas rapida y agil parv proyectos web modernos.
+> **Nota** El proceso de creación del proyecto es igual tanto para linux como para Windows. 
 ````bash 
 npm create vite@latest
 ```` 
+![Creacion_proyecto](/src/Img/vite.png)
+
 una vez se ejecute este comando se iniciara a descargar algunas dependecias y procedera a preguntarte el nuevo nombre del proyecto, el **framework** en nuestro caso **React** y por ultimo el leguaje de programacion nosotros escogimos **TypeScript** que es basicamente **JavaScript** pero con tipado para poder ver y manejar mejor los errores y con estos ya estaria creado el proyecto.
 > **Nota**: cuando estemos dentro de nuestro proyecto debemos ejecutar **npm i** para que nos descargues todas las dependecias. Para correr el proyecto debes de ejecutar **npm run dev**
 
+
+![Proceso](/src/Img/img1.png)
+
+![Proceso](/src/Img/img2.png)
+
+![Proceso](/src/Img/web.png)
+> **Nota** Muesta del proceso descrito.
 
 # React + TypeScript + Vite
 
