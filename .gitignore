@@ -1,0 +1,18 @@
+# node_modules: dependencias de npm
+node_modules/
+
+# Salidas de compilación
+dist/
+build/
+
+# Archivos de entorno
+.env
+
+# Archivos de logs
+*.log
+
+# Archivos de TypeScript
+*.tsbuildinfo
+
+# Archivos de configuración de VSCode
+.vscode/
