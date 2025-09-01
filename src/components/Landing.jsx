@@ -1,5 +1,6 @@
 import Avatar from './Avatar.jsx'
 import Button from './Button.jsx'
+import Footer from './Footer.jsx'
 export default function Landing(){
     return (
         <section>
@@ -55,9 +56,7 @@ export default function Landing(){
                 </Button>
             </main>
             </section>
-            <footer>
-                {/* Aquí agregan el footer */}
-            </footer>
+            <Footer/>
         </section>
     )
 }
