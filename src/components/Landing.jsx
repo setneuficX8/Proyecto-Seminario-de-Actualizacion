@@ -1,5 +1,5 @@
 import Avatar from './Avatar.jsx'
-
+import Button from './Button.jsx'
 export default function Landing(){
     return (
         <section>
@@ -29,7 +29,7 @@ export default function Landing(){
                             size={100}
                         />
                     </li>
-                       
+                            
                     <li>Key Dayana Arboleda Mina
                         <Avatar
                             person={{
@@ -50,6 +50,9 @@ export default function Landing(){
                         />
                     </li>
                 </ul>
+                <Button onClick={() => alert('Holaaa')} disabled={false}>
+                ???
+                </Button>
             </main>
             </section>
             <footer>
