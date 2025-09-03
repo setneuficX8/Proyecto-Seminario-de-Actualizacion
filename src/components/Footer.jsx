@@ -2,7 +2,7 @@ export default function Footer (){
     return(
         <footer>
            <p>
-            © {new Date().getFullYear()} mi sitio. 
+            © {new Date().getFullYear()} Todos los derechos reservados.
            </p>
         </footer>
     )

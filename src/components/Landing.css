@@ -1,0 +1,53 @@
+.landing-container {
+    background: linear-gradient(to bottom right, #1a1a1a, #1a1a1a, #0a1f3d);
+    min-height: 100vh;
+    padding: 2rem;
+    color: white;
+}
+
+.landing-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.landing-header h1 {
+    color: #ffffff;
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.participants-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+    padding: 0;
+    list-style: none;
+}
+
+.participant-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+    width: 250px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+    transition: transform 0.3s ease;
+}
+
+.participant-card:hover {
+    transform: translateY(-5px);
+}
+
+.participant-card img {
+    border-radius: 50%;
+    margin: 1rem 0;
+    border: 3px solid #23cadc;
+}
+
+.landing-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+}

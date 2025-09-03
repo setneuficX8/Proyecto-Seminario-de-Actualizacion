@@ -1,58 +1,46 @@
-# Semana 2
+# Semana 4: COMPONENTES Y CICLO DE VIDA
 
-## Proyecto Seminario de actualización 🚀
-
-### Integrantes del proyecto 
+## Integrantes del proyecto 
 
 - Keyla Dayana Arboleda Mina 
 
 - Carlos Andres Cifuentes Montaño
 
-- Darío Restrepo Landázuri
+- Darío Restrepo Landázury
 
 - Jose Fernando Sinisterra Ibargüen 
 
-# Pros y contra de react
+---
 
-### Pros:
+### COMPONENTES 
 
-- Aprender React es más sencillo si ya se tiene experiencia con HTML y JavaScript, porque su sintaxis con JSX se parece mucho a lo que ya se conoce.
-- La idea de construir la interfaz mediante componentes, hace que el código sea más organizado y fácil de escalar.
-- En caso de tener dificultades o dudas, está disponible la documentación y también la comunidad; como por ejemplo en redes sociales como Stack Overflow, Reddit y discord.
+Son **piezas de código que renderizan una parte de la interfaz**. Los componentes pueden ser parametrizados, reutilizados y pueden contener su propio estado. Se crean usando funciones o clases.
 
-### Contras:
+> Tenga en cuenta que los componentes de React son funciones regulares de JavaScript, pero sus nombres deben comenzar con letra mayúscula o no funcionarán.
 
-- Al principio puede ser un poco abrumador, porque se deben tener presentes conceptos como los estados, las props y los hooks, y acostumbrarte a mezclar HTML y JavaScript en un mismo archivo, lo cual se siente raro al inicio.
-- Otro detalle es que React solo se encarga de la parte visual, la interfaz de usuario. Entonces, si quiere crear una aplicación más completa será necesario añadir más recursos como por ejemplo **React Router** o en su defecto utilizar su framework, **Next.js**.
-
-# Semana 3
-
-## Un resumen de como empezar un nuevo proyecto
-Para instalar Node.js en Windows, primero debes descargar el instalador desde el sitio oficial de Node.js. Luego, ejecuta el archivo MSI y sigue los pasos del asistente de instalación, aceptando los términos y seleccionando la ubicación deseada. Finalmente, verifica la instalación abriendo la CMD y ejecutando node -v npm -v . Si todo salió bien, deberías ver la versión de Node.js y npm.
+> El siguiente componente muestra la construcción de un footer:
+![componente-Footer](image.png)
 
 
-Lo primero es instalar el npm y nodejs en este caso se mostrara en como se hace en arch linux 
-````bash 
-sudo pacman -S npm nodejs 
-```` 
-![Proceso](/src/Img/250817_00h53m56s_screenshot.png)
 
-una vez instalado se podra crear un nuevo proyecto parv react, nosotros decidimos iniciar el proyecto con **vite** que es una herramienta de compilacion que tiene como objetivo proporcionar una herramientv de desarrollo mas rapida y agil parv proyectos web modernos.
-> **Nota** El proceso de creación del proyecto es igual tanto para linux como para Windows. 
-````bash 
-npm create vite@latest
-```` 
-![Creacion_proyecto](/src/Img/vite.png)
+### PROPS
 
-una vez se ejecute este comando se iniciara a descargar algunas dependecias y procedera a preguntarte el nuevo nombre del proyecto, el **framework** en nuestro caso **React** y por ultimo el leguaje de programacion nosotros escogimos **TypeScript** que es basicamente **JavaScript** pero con tipado para poder ver y manejar mejor los errores y con estos ya estaria creado el proyecto.
-> **Nota**: cuando estemos dentro de nuestro proyecto debemos ejecutar **npm i** para que nos descargues todas las dependecias. Para correr el proyecto debes de ejecutar **npm run dev**
+Son una forma de pasar **datos de un componente padre a un componente hijo**. Se ven y funcionan como un **parámetros de una función**, permitiendo que un componente reciba reciba información externa y la utilice para renderizar contenido dinámico.
 
+Los props poseen de manera destacable las siguientes características:
+- Son inmutables, es decir que no se puede modificar dentro del componente que lo recibe.
+- Son Unidireccionales y los datos fluyen de arriba a abajo(padre a hijo).
+- Son personalizables y permiten reutilizar componentes con diferentes datos.
 
-![Proceso](/src/Img/img1.png)
+> En el siguiente ejemplo, podemos ver los props de un componente:
 
-![Proceso](/src/Img/img2.png)
+![componente-avatar](image-1.png)
 
-![Proceso](/src/Img/web.png)
-> **Nota** Muesta del proceso descrito.
+---
 
-# Semana 4 
+### INTEGRACIÓN DE COMPONENTES
+
+Del proyecto, en el componente [Landing](src/components/Landing.jsx) combinamos los 2 componentes mostrados anteriormente, mas otros. Se integran:
+- El componente `Avatar` para mostrar las imágenes de los integrantes.
+- El componente `Footer` para mostrar el pie de página.
+- El componente `Button` para interacciones.

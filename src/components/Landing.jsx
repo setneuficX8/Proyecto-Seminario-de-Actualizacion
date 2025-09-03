@@ -1,17 +1,18 @@
 import Avatar from './Avatar.jsx'
 import Button from './Button.jsx'
 import Footer from './Footer.jsx'
+import './Landing.css'
+
 export default function Landing(){
     return (
-        <section>
-            <header>
+        <div className="landing-container">
+            <header className="landing-header">
                 <h1>BIENVENIDO A NUESTRO PROYECTO</h1>
             </header>
-            <section>
-                <main>
+            <main>
                 <p>Esta es la página de inicio de nuestro proyecto, para su elaboración, participan:</p>
-                <ul>
-                    <li>Carlos Andres Cifuentes Montaño
+                <ul className="participants-list">
+                    <li className="participant-card">Carlos Andres Cifuentes Montaño
                         <Avatar
                             person={{
                                 name: "Carlos Andres Cifuentes Montaño",
@@ -21,7 +22,7 @@ export default function Landing(){
                         />
                     </li>
                     
-                    <li>Darío Restrepo Landazury
+                    <li className="participant-card">Darío Restrepo Landazury
                         <Avatar
                             person={{
                                 name: "Darío Restrepo Landazury",
@@ -31,7 +32,7 @@ export default function Landing(){
                         />
                     </li>
                             
-                    <li>Key Dayana Arboleda Mina
+                    <li className="participant-card">Key Dayana Arboleda Mina
                         <Avatar
                             person={{
                                 name: "Key Dayana Arboleda Mina",
@@ -41,7 +42,7 @@ export default function Landing(){
                         />
                     </li>
 
-                    <li>Jose Fernando Sinisterra Ibargüen
+                    <li className="participant-card">Jose Fernando Sinisterra Ibargüen
                         <Avatar
                             person={{
                                 name: "Jose Fernando Sinisterra Ibargüen",
@@ -55,8 +56,9 @@ export default function Landing(){
                 ???
                 </Button>
             </main>
-            </section>
-            <Footer/>
-        </section>
+            <div className="landing-footer">
+                <Footer/>
+            </div>
+        </div>
     )
 }
