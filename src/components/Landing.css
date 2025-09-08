@@ -1,19 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Montserrat:wght@400;500&display=swap');
+
 .landing-container {
     background: linear-gradient(to bottom right, #1a1a1a, #1a1a1a, #0a1f3d);
     min-height: 100vh;
     padding: 2rem;
     color: white;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .landing-header {
     text-align: center;
     margin-bottom: 2rem;
+    font-family: 'Poppins', sans-serif;
 }
 
 .landing-header h1 {
     color: #ffffff;
     font-size: 2.5rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    font-family: 'Poppins', sans-serif;
 }
 
 .participants-list {
@@ -21,28 +38,53 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 2rem;
-    padding: 0;
+    padding: 1rem;
     list-style: none;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .participant-card {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     padding: 1.5rem;
-    width: 250px;
+    width: 350px;
     text-align: center;
     backdrop-filter: blur(5px);
     transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .participant-card:hover {
     transform: translateY(-5px);
+    z-index: 3;
 }
 
 .participant-card img {
     border-radius: 50%;
     margin: 1rem 0;
     border: 3px solid #23cadc;
+}
+
+.participant-card h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+
+.participant-card p {
+    font-family: 'Montserrat', sans-serif;
 }
 
 .landing-footer {
@@ -54,7 +96,10 @@
 
 .avatar-container {
     position: relative;
-    display: inline-block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
     margin: 1rem 0;
 }
 
@@ -63,11 +108,14 @@
     transition: transform 0.3s ease;
     border-radius: 50%;
     border: 3px solid #23cadc;
+    display: block;
+    margin: 0 auto;
 }
 
 .avatar.expanded {
     transform: scale(1.1);
     box-shadow: 0 0 15px rgba(35, 202, 220, 0.5);
+    z-index: 1000;
 }
 
 .avatar-description {
@@ -77,8 +125,8 @@
     padding: 1.5rem;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    z-index: 1000;
-    width: 250px;
+    z-index: 1002;
+    width: 350px;
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
@@ -88,14 +136,17 @@
 }
 
 .avatar-description h3 {
+    font-family: 'Poppins', sans-serif;
     color: #23cadc;
     margin-bottom: 1rem;
     font-size: 1.2rem;
 }
 
 .avatar-description p {
+    font-family: 'Montserrat', sans-serif;
     font-size: 0.9rem;
     line-height: 1.6;
     color: #e0e0e0;
     white-space: pre-line;
+    font-family: 'Montserrat', sans-serif;
 }

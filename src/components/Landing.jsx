@@ -12,12 +12,13 @@ export default function Landing(){
             <main>
                 <p>Esta es la página de inicio de nuestro proyecto, para su elaboración, participan:</p>
                 <ul className="participants-list">
-                    <li className="participant-card">Carlos Andres Cifuentes Montaño
+                    <li className="participant-card">
+                        <h2>Carlos Andres Cifuentes Montaño</h2>
                         <Avatar
                             person={{
-                                name: "Diseñador de IU/UX",
+                                name: "Desarrollador Frontend",
                                 imageUrl: "/src/Img/Carlos.jpeg",
-                                description: "Estudiante de Ingeniería de Sistemas, especializado en diseño de interfaces. Responsable de crear experiencias de usuario intuitivas y atractivas. Experto en: \n• Diseño de interfaces de usuario\n• Prototipado y wireframing\n• Investigación de usuarios\n• Optimización de experiencia de usuario"
+                                description: "Me encargo del desarrollo del Frontend, asegurando que la interfaz de usuario sea legible, funcional y que represente bien la información que se trae del backend."
                             }}
                             size={100}
                         />
@@ -26,12 +27,13 @@ export default function Landing(){
                         </Button>
                     </li>
                     
-                    <li className="participant-card">Darío Restrepo Landazury
+                    <li className="participant-card">
+                        <h2>Darío Restrepo Landazury</h2>
                         <Avatar
                             person={{
                                 name: "Desarrollador Backend",
                                 imageUrl: "/src/Img/Dario.jpeg",
-                                description: "Estudiante de Ingeniería de Sistemas, especializado en desarrollo Backend. Experto en: \n• Arquitectura de servidores\n• Desarrollo de APIs RESTful\n• Gestión de bases de datos\n• Optimización de rendimiento del servidor"
+                                description: "Me encargo del ajustar mayormente lo que se refiere al backend. Asegurandome de la lógica e integridad de los datos."
                             }}
                             size={100}
                         />
@@ -40,12 +42,13 @@ export default function Landing(){
                         </Button>
                     </li>
                             
-                    <li className="participant-card">Key Dayana Arboleda Mina
+                    <li className="participant-card">
+                        <h2>Key Dayana Arboleda Mina</h2>
                         <Avatar
                             person={{
-                                name: "Gestora de Proyectos",
+                                name: "Gestora del Proyecto",
                                 imageUrl: "/src/Img/Key.jpeg",
-                                description: "Estudiante de Ingeniería de Sistemas, especializada en gestión de proyectos. Habilidades destacadas: \n• Planificación y seguimiento de proyectos\n• Gestión de equipos ágiles\n• Metodologías Scrum\n• Coordinación de recursos y tiempos"
+                                description: "Me encargo tanto de gestionar el equipo como de apoyar en el código del proyecto, ya sea en Frontend o el Backend. Busco asegurar que todo marche bien y a tiempo."
                             }}
                             size={100}
                         />
@@ -54,12 +57,13 @@ export default function Landing(){
                         </Button>
                     </li>
 
-                    <li className="participant-card">Jose Fernando Sinisterra Ibargüen
+                    <li className="participant-card">
+                        <h2>Jose Fernando Sinisterra Ibargüen</h2>
                         <Avatar
                             person={{
-                                name: "Analista de Datos",
+                                name: "Desarrollador Full Stack",
                                 imageUrl: "/src/Img/Fernando.jpeg",
-                                description: "Estudiante de Ingeniería de Sistemas, especializado en análisis de datos. Experto en: \n• Análisis y visualización de datos\n• Business Intelligence\n• Minería de datos\n• Implementación de soluciones basadas en datos"
+                                description: "Participo y apoyo tanto en el desarrollo del frontend como del backend, asegurando una integración fluida entre ambos."
                             }}
                             size={100}
                         />
