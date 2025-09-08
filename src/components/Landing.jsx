@@ -20,6 +20,9 @@ export default function Landing(){
                             }}
                             size={100}
                         />
+                        <Button disabled={false}>
+                            ¡Dale Me Gusta!
+                        </Button>
                     </li>
                     
                     <li className="participant-card">Darío Restrepo Landazury
@@ -30,6 +33,9 @@ export default function Landing(){
                             }}
                             size={100}
                         />
+                        <Button disabled={false}>
+                            ¡Dale Me Gusta!
+                        </Button>
                     </li>
                             
                     <li className="participant-card">Key Dayana Arboleda Mina
@@ -40,6 +46,9 @@ export default function Landing(){
                             }}
                             size={100}
                         />
+                        <Button disabled={false}>
+                            ¡Dale Me Gusta!
+                        </Button>
                     </li>
 
                     <li className="participant-card">Jose Fernando Sinisterra Ibargüen
@@ -50,11 +59,12 @@ export default function Landing(){
                             }}
                             size={100}
                         />
+                        <Button disabled={false}>
+                            ¡Dale Me Gusta!
+                        </Button>
                     </li>
                 </ul>
-                <Button onClick={() => alert('Holaaa')} disabled={false}>
-                ???
-                </Button>
+               
             </main>
             <div className="landing-footer">
                 <Footer/>
