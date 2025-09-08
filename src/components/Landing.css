@@ -51,3 +51,51 @@
     padding: 1rem;
     background: rgba(0, 0, 0, 0.2);
 }
+
+.avatar-container {
+    position: relative;
+    display: inline-block;
+    margin: 1rem 0;
+}
+
+.avatar {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    border-radius: 50%;
+    border: 3px solid #23cadc;
+}
+
+.avatar.expanded {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(35, 202, 220, 0.5);
+}
+
+.avatar-description {
+    position: absolute;
+    background: rgba(26, 26, 26, 0.95);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 250px;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(35, 202, 220, 0.3);
+}
+
+.avatar-description h3 {
+    color: #23cadc;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.avatar-description p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #e0e0e0;
+    white-space: pre-line;
+}
