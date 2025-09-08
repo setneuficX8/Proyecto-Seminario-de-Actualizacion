@@ -21,7 +21,7 @@ export default function Landing(){
                             size={100}
                         />
                         <Button disabled={false}>
-                            ¡Dale Me Gusta!
+                            ¡Dame Me Gusta!
                         </Button>
                     </li>
                     

@@ -1,18 +1,37 @@
 import { useState } from 'react';
 
 export default function Button({ children, disabled = false }) {
-    // 1. Declaras el estado inicial de los "me gusta" en 0
     const [count, setCount] = useState(0);
 
-    // 2. Función que incrementa el contador cada vez que se hace clic
+    const getButtonColor = () => {
+        if (count <= 3) return '#0a4188ff';
+        if (count <= 7) return '#af9609ff';
+        return '#0cb991ff';
+    };
+
     function like() {
-        setCount(count + 1);
+        if (count < 10) {
+            setCount(count + 1);
+        }
     }
 
-    // 3. Renderizas el botón y muestras el contador
+    const buttonStyle = {
+        backgroundColor: getButtonColor(),
+        color: 'white',
+        padding: '8px 16px',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: count >= 10 ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1
+    };
+
     return (
-        <button onClick={like} disabled={disabled}>
-            {children} 👍 {count}
+        <button 
+            onClick={like} 
+            disabled={disabled || count >= 10}
+            style={buttonStyle}
+        >
+            {count >= 10 ? 'Límite alcanzado' : `${children} 👍 ${count}`}
         </button>
     );
 }
