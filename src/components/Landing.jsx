@@ -43,11 +43,11 @@ export default function Landing(){
                     </li>
                             
                     <li className="participant-card">
-                        <h2>Key Dayana Arboleda Mina</h2>
+                        <h2>Keyla Dayana Arboleda Mina</h2>
                         <Avatar
                             person={{
                                 name: "Gestora del Proyecto",
-                                imageUrl: "/src/Img/Key.jpeg",
+                                imageUrl: "/src/Img/Keyla.jpeg",
                                 description: "Me encargo tanto de gestionar el equipo como de apoyar en el código del proyecto, ya sea en Frontend o el Backend. Busco asegurar que todo marche bien y a tiempo."
                             }}
                             size={100}
