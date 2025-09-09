@@ -1,7 +1,12 @@
-import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { incrementLike } from '../store/ParticipantsSlice';
 
-export default function Button({ children, disabled = false }) {
-    const [count, setCount] = useState(0);
+export default function Button({ participantId, children, disabled = false }) {
+    const dispatch = useDispatch();
+    const participant = useSelector(state => 
+        state.participants.participants.find(p => p.id === participantId)
+    );
+    const count = participant?.like || 0;
 
     const getButtonColor = () => {
         if (count <= 3) return '#0a4188ff';
@@ -11,7 +16,7 @@ export default function Button({ children, disabled = false }) {
 
     function like() {
         if (count < 10) {
-            setCount(count + 1);
+            dispatch(incrementLike(participantId));
         }
     }
 
