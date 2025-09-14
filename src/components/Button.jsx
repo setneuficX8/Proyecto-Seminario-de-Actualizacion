@@ -7,7 +7,7 @@ export default function Button({ participantId, children, disabled = false }) {
         state.participants.participants.find(p => p.id === participantId)
     );
     const count = participant?.like || 0;
-
+    
     const getButtonColor = () => {
         if (count <= 3) return '#0a4188ff';
         if (count <= 7) return '#af9609ff';
