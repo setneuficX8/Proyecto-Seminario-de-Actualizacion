@@ -1,7 +1,7 @@
 export default function Ruta() {
   return (
     <div>
-      <h1>Links relacionados</h1>
+      <h1>Links relacionados a react y nuestro proyecto</h1>
       <p>
         ¿Quieres aprender más sobre React? Visita la{' '}
         <a href="https://react.dev/" target="_blank" rel="noopener noreferrer">
