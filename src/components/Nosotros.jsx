@@ -2,14 +2,14 @@ import { useSelector } from 'react-redux';
 import Avatar from './Avatar.jsx';
 import Button from './Button.jsx';
 import Footer from './Footer.jsx';
-import './Landing.css';
+import './Nosotros.css';
 
-export default function Landing() {
+export default function Nosotros() {
     const participants = useSelector(state => state.participants.participants);
 
     return (
-        <div className="landing-container">
-            <header className="landing-header">
+        <div className="Nosotros-container">
+            <header className="Nosotros-header">
                 <h1>BIENVENIDO A NUESTRO PROYECTO</h1>
             </header>
             <main>
@@ -36,7 +36,7 @@ export default function Landing() {
                     ))}
                 </ul>
             </main>
-            <div className="landing-footer">
+            <div className="Nosotros-footer">
                 <Footer/>
             </div>
         </div>
