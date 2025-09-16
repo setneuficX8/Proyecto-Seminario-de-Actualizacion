@@ -10,8 +10,12 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
-        <h1>BIENVENID@</h1>
-        <nav >
+          <div className="bienvenida">
+            <h1>BIENVENID@</h1>
+
+            <img src="public/file.svg" alt="Logo de la aplicación" width={100} height={100} />
+          </div>
+        <nav>
           <h3><Link to="/" >Inicio</Link></h3>
           <h3><Link to="/ruta" >Links</Link></h3>
         </nav>
