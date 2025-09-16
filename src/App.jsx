@@ -2,8 +2,8 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import {lazy, Suspense} from 'react'
 import './App.css'
 
-const Nosotros = lazy(() => import('./components/Nosotros'))
-const Ruta = lazy(() => import('./components/Ruta'))
+const Nosotros = lazy(() => delay(import('./components/Nosotros')))
+const Ruta = lazy(() => delay(import('./components/Ruta')))
 
 
 function App() {
@@ -21,7 +21,8 @@ function App() {
           <h3><Link to="/ruta" >Links</Link></h3>
         </nav>
         <main>
-          <Suspense fallback={<div>Cargando...</div>}>
+          <Suspense fallback={<div>Cargando...
+          </div>}>
              <Routes>
             <Route path="/" element={<Nosotros />} />
             <Route path="/ruta" element={<Ruta />} />
@@ -31,6 +32,12 @@ function App() {
       </div>
     </BrowserRouter>
   )
+}
+
+function delay(promise){
+return new Promise(resolve => {
+    setTimeout(resolve, 2000);
+  }).then(() => promise);
 }
 
 export default App
