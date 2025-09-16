@@ -1,29 +1,32 @@
-import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
-import Nosotros from './components/Nosotros.jsx'
-import Ruta from './components/Ruta.jsx'
+import {lazy, Suspense} from 'react'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const Nosotros = lazy(() => import('./components/Nosotros'))
+const Ruta = lazy(() => import('./components/Ruta'))
 
+
+function App() {
+ 
   return (
     <BrowserRouter>
       <div className="App">
           <div className="bienvenida">
             <h1>BIENVENID@</h1>
 
-            <img src="public/file.svg" alt="Logo de la aplicación" width={100} height={100} />
+            <img src="public/rot.png" alt="Logo de la aplicación" width={200} height={200} />
           </div>
         <nav>
           <h3><Link to="/" >Inicio</Link></h3>
           <h3><Link to="/ruta" >Links</Link></h3>
         </nav>
         <main>
-          <Routes>
+          <Suspense fallback={<div>Cargando...</div>}>
+             <Routes>
             <Route path="/" element={<Nosotros />} />
             <Route path="/ruta" element={<Ruta />} />
           </Routes>
+          </Suspense>
         </main>
       </div>
     </BrowserRouter>
