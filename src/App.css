@@ -8,6 +8,19 @@ body{
   color: white;
 }
 
+.MensajeInicio h2{
+  text-align: center;
+  margin: 20px;
+  font-size: 4rem;
+  font-weight: bold;
+  background: linear-gradient(to right, #ffffff, #73dffa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  font-family: 'Poppins', sans-serif;
+}
+
 .bienvenida {
   display: flex;
   align-items: center;

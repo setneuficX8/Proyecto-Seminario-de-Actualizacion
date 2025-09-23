@@ -28,7 +28,9 @@ function App() {
           </div>}>
              <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<div>Bienvenido a la página de inicio.</div>} />
+              <Route path="/" element={<div className='MensajeInicio'>
+                <h2>Explora nuestras secciones para ver más contenido.</h2>
+                </div>} />
               <Route path="/nosotros" element={
                 <PrivateRoute>
                   <Nosotros />
@@ -49,7 +51,7 @@ function App() {
 
 function delay(promise){
 return new Promise(resolve => {
-    setTimeout(resolve, 1500);
+    setTimeout(resolve, 500);
   }).then(() => promise);
 }
 

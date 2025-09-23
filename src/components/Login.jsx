@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { login } from '../store/authSlice';
 import users from '../store/users.json';
 import { useNavigate } from 'react-router-dom';
+import './Login.css';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -23,12 +24,12 @@ export default function Login() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className='login-form' onSubmit={handleSubmit}>
       <h2>Iniciar sesión</h2>
       <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Usuario" />
       <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" />
       <button type="submit">Entrar</button>
-      {error && <p style={{color:'red'}}>{error}</p>}
+      {error && <p className="login-error">{error}</p>}
     </form>
   );
 }

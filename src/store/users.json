@@ -1,4 +1,6 @@
 [
-  { "username": "admin", "password": "1234" },
-  { "username": "user", "password": "abcd" }
+  { "username": "Fercho", "password": "1234" },
+  { "username": "Dario", "password": "4321" },
+  { "username": "Cifuentes", "password": "abcd" },
+  { "username": "Keyla", "password": "dcba" }
 ]
