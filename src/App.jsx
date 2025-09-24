@@ -3,6 +3,7 @@ import {lazy, Suspense} from 'react'
 import './App.css'
 import PrivateRoute from './components/PrivateRoute';
 import Login from './components/Login';
+import ApiEjemplo from './components/ApiEjemplo';
 
 const Nosotros = lazy(() => delay(import('./components/Nosotros')))
 const Ruta = lazy(() => delay(import('./components/Ruta')))
@@ -22,15 +23,19 @@ function App() {
           <h3><Link to="/" >Inicio</Link></h3>
           <h3><Link to="/nosotros" >Nosotros</Link></h3>
           <h3><Link to="/ruta" >Links</Link></h3>
+          <h3><Link to="/apiejemplo"> API </Link></h3>
         </nav>
         <main>
           <Suspense fallback={<div>Cargando...
           </div>}>
              <Routes>
+              
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<div className='MensajeInicio'>
                 <h2>Explora nuestras secciones para ver más contenido.</h2>
                 </div>} />
+                 <Route path="/apiejemplo" element={<ApiEjemplo />}
+                 />
               <Route path="/nosotros" element={
                 <PrivateRoute>
                   <Nosotros />
