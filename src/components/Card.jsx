@@ -1,4 +1,3 @@
-import { useState } from "react"
 import "./Card.css" // Agregamos el import del archivo CSS
 
 export default function Card({ Data }) {

@@ -4,8 +4,20 @@ import "./Card.css";
 
 export default function ApiEjemplo() {
     const [data, setData] = useState(null);
-    const [characterId, setCharacterId] = useState(3); // Nuevo estado para el id
+    const [characterId, setCharacterId] = useState(3);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [allCharacters, setAllCharacters] = useState([]);
     const BASE_URL = 'https://dragonball-api.com/api/characters/';
+
+    const fetchAllCharacters = async () => {
+        try {
+            const response = await fetch(`${BASE_URL}?limit=100`);
+            const data = await response.json();
+            setAllCharacters(data.items || []);
+        } catch (error) {
+            console.error("Error en obtener todos los personajes:", error);
+        }
+    };
 
     const fetchData = async (id) => {
         try {
@@ -18,9 +30,40 @@ export default function ApiEjemplo() {
         }
     };
 
+    const handleSearch = () => {
+        if (!searchTerm.trim()) return;
+        
+        // Buscar por ID si es un número
+        if (!isNaN(searchTerm) && searchTerm.trim() !== "") {
+            const id = parseInt(searchTerm);
+            setCharacterId(id);
+            fetchData(id);
+            return;
+        }
+        
+        // Buscar por nombre
+        const foundCharacter = allCharacters.find(char => 
+            char.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        
+        if (foundCharacter) {
+            setCharacterId(foundCharacter.id);
+            setData(foundCharacter);
+        } else {
+            console.log("Personaje no encontrado");
+        }
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     useEffect(() => {
         fetchData(characterId);
-    }, [characterId]); // Se actualiza cuando cambia el id
+        fetchAllCharacters();
+    }, [characterId]);
 
     const handlePrev = () => {
         if (characterId > 1) setCharacterId(characterId - 1);
@@ -35,6 +78,19 @@ export default function ApiEjemplo() {
         <>
             <div>
                 <h1>Personajes</h1>
+                <div style={{ textAlign: 'center', margin: '20px 0' }}>
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Buscar por nombre o ID..."
+                        style={{ padding: '8px', marginRight: '10px', borderRadius: '4px' }}
+                    />
+                    <button onClick={handleSearch} style={{ padding: '8px 12px', borderRadius: '4px' }}>
+                        Buscar
+                    </button>
+                </div>
                 <div className="anterior" >
                      <button onClick={handlePrev}>&larr; Anterior</button>
                 </div>
