@@ -1,32 +1,43 @@
-import { useState,useEffect } from "react";  
+import { useState, useEffect } from "react";  
 import Card from "./Card";
 
 export default function ApiEjemplo() {
     const [data, setData] = useState(null);
+    const [characterId, setCharacterId] = useState(3); // Nuevo estado para el id
     const BASE_URL = 'https://dragonball-api.com/api/characters/';
 
     const fetchData = async (id) => {
-        try{
+        try {
             const response = await fetch(`${BASE_URL}${id}`);
             const data = await response.json();
             setData(data);
             console.log(data);
-        }catch(error){
+        } catch (error) {
             console.error("Error en obtener datos:", error);
         }
+    };
 
-}
     useEffect(() => {
-        fetchData(2);
-    }, []);
+        fetchData(characterId);
+    }, [characterId]); // Se actualiza cuando cambia el id
 
-    if(!data) return <div>Cargando...</div>;
-    return(
+    const handlePrev = () => {
+        if (characterId > 1) setCharacterId(characterId - 1);
+    };
+
+    const handleNext = () => {
+        setCharacterId(characterId + 1);
+    };
+
+    if (!data) return <div>Cargando...</div>;
+    return (
         <>
-        <div>
-         <h1>Personajes</h1>
-        <Card Data={data} />
-        </div>
+            <div>
+                <h1>Personajes</h1>
+                <button onClick={handlePrev}>&larr; Anterior</button>
+                <button onClick={handleNext}>Siguiente &rarr;</button>
+                <Card Data={data} />
+            </div>
         </>
-    )
+    );
 }
