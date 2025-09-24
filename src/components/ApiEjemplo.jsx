@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";  
 import Card from "./Card";
+import "./Card.css";
 
 export default function ApiEjemplo() {
     const [data, setData] = useState(null);
@@ -34,8 +35,12 @@ export default function ApiEjemplo() {
         <>
             <div>
                 <h1>Personajes</h1>
-                <button onClick={handlePrev}>&larr; Anterior</button>
-                <button onClick={handleNext}>Siguiente &rarr;</button>
+                <div className="anterior" >
+                     <button onClick={handlePrev}>&larr; Anterior</button>
+                </div>
+                <div className="siguiente">
+                    <button onClick={handleNext}>Siguiente &rarr;</button>
+                </div>
                 <Card Data={data} />
             </div>
         </>

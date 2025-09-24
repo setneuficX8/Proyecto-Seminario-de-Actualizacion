@@ -68,3 +68,10 @@
   color: #7fafff;
   font-weight: 700;
 }
+
+.anterior, .siguiente {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 16px;
+}
