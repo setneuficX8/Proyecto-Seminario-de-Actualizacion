@@ -1,4 +1,4 @@
-# Semana 7: CONSUMO DE API'S Y MANEJO DE ERRORES
+# Semana 8: ESTILOS UX/UI
 
 ## Integrantes del proyecto
 
@@ -9,29 +9,8 @@
 
 ---
 
-Para empezar, una **API** (Application Programming Interface) nos permite la comunicación entre 2 o más elementos o sistemas.
+Tanto la **UX** (*Experiencia de Usuario*) y la **UI** (*Interfaz de Usuario*) son lo que conforma la parte visual de una aplicación web, móvil, de escritorio, etc. La UI se encarga de la apariencia y la interactividad. Por su parte, el UX abarca lo que tiene que ver con la interacción del usuario con el software. Juntos aseguran tanto la funcionalidad como la satisfacción del usuario.
 
 ---
 
-## Consumo de API en este proyecto React
-
-### ¿Dónde se realiza el consumo de API?
-
-El consumo de API se implementa en el componente [`ApiEjemplo`](src/components/ApiEjemplo.jsx), ubicado en [src/components/ApiEjemplo.jsx](src/components/ApiEjemplo.jsx).
-
-### Descripción del componente
-
-- El componente utiliza la API pública de Dragon Ball:  
-  `https://dragonball-api.com/api/characters/`
-- Permite navegar entre personajes usando botones "Anterior" y "Siguiente".
-- Muestra la información del personaje seleccionado en una tarjeta (`Card`).
-
-### Lógica de consumo
-
-- Se utiliza el hook `useEffect` para realizar la petición cada vez que cambia el ID del personaje.
-- El hook `useState` gestiona el estado del personaje actual y los datos obtenidos.
-- El método `fetch` realiza la petición HTTP GET a la API.
-- Se maneja el estado de carga y posibles errores en consola.
-
-### Ejemplo de código 
-![alt text](image-3.png)
+Ahora, bien, ¿Como está construido nuestro proyecto en cuando a **UX/UI**?
