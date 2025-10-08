@@ -7,8 +7,8 @@
 }
 
 #map-container {
-  height: 100%;
-  width: 60%;
+  height: 500px; /* Altura fija en lugar de 100% */
+  width: 100%; /* Ancho completo */
   /* temporarily set the background color so we can tell where the map container is positioned */
   background-color: lightgrey;
 }
