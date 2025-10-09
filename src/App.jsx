@@ -4,6 +4,7 @@ import './App.css'
 import PrivateRoute from './components/PrivateRoute';
 import Login from './components/Login';
 import Mapa from './components/Mapa';
+import EjemploAPI from './components/EjemploAPI';
 
 const Nosotros = lazy(() => delay(import('./components/Nosotros')))
 const Ruta = lazy(() => delay(import('./components/Ruta')))
@@ -23,6 +24,7 @@ function App() {
           <h3><Link to="/nosotros" >Nosotros</Link></h3>
           <h3><Link to="/ruta" >Links</Link></h3>
           <h3><Link to="/mapa">Mapa de Rutas </Link></h3>
+          <h3><Link to="/ejemplo-api">Ejemplo API</Link></h3>
         </nav>
         <main>
           <Suspense fallback={<div>Cargando...
@@ -35,10 +37,15 @@ function App() {
                 </div>} />
                  <Route path="/mapa" element={<Mapa />}
                  /> <>{/*Hacerla privada*/}</>
+                  
               <Route path="/nosotros" element={
                 <PrivateRoute>
                   <Nosotros />
                 </PrivateRoute>
+              } />
+              <Route path="/ejemplo-api" element={
+                  <EjemploAPI />
+                
               } />
               <Route path="/ruta" element={
                 <PrivateRoute>
