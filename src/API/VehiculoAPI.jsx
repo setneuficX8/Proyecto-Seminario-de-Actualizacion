@@ -54,3 +54,38 @@ export const createVehiculo = async (data) => {
     throw error;
   }
 };
+
+// Eliminar un vehículo
+export const deleteVehiculo = async (id) => {
+  try {
+    const url = `${API_BASE}/vehiculos/${id}`;
+    console.log('DELETE URL:', url);
+    
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    
+    console.log('Delete response status:', response.status);
+    console.log('Delete response ok:', response.ok);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Delete error response:', errorText);
+      throw new Error(`Error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+    
+    // Algunas APIs devuelven contenido, otras no
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      return { success: true, message: 'Vehículo eliminado correctamente' };
+    }
+  } catch (error) {
+    console.error("Error al eliminar vehículo:", error);
+    throw error;
+  }
+};

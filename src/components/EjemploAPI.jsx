@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getVehiculos, createVehiculo } from '../API/VehiculoAPI';
+import { getVehiculos, createVehiculo, deleteVehiculo } from '../API/VehiculoAPI';
 
 const EjemploAPI = () => {
   const [vehiculos, setVehiculos] = useState([]);
@@ -59,6 +59,23 @@ const EjemploAPI = () => {
       await cargarVehiculos(); // Recargar la lista
     } catch (err) {
       setError('Error al crear vehículo');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este vehículo?')) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      await deleteVehiculo(id);
+      await cargarVehiculos(); // Recargar la lista
+    } catch (err) {
+      console.error('Error al eliminar:', err);
+      setError('Error al eliminar vehículo: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -178,14 +195,36 @@ const EjemploAPI = () => {
                   backgroundColor: '#333'
                 }}
               >
-                <h3 style={{ margin: '0 0 10px 0', color: ' #f9f9f9' }}>
-                  {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo}
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <h3 style={{ margin: '0', color: '#f9f9f9' }}>
+                    {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo}
+                  </h3>
+                  {vehiculo.id && (
+                    <button
+                      onClick={() => handleDelete(vehiculo.id)}
+                      disabled={loading}
+                      style={{
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        opacity: loading ? 0.6 : 1,
+                        transition: 'all 0.2s ease'
+                      }}
+                      title="Eliminar vehículo"
+                    >
+                      🗑️ Eliminar
+                    </button>
+                  )}
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
-                  <p><strong>Placa:</strong> {vehiculo.placa}</p>
-                  <p><strong>Marca:</strong> {vehiculo.marca}</p>
-                  <p><strong>Modelo:</strong> {vehiculo.modelo}</p>
-                  <p><strong>Estado:</strong> 
+                  <p style={{ color: '#f9f9f9' }}><strong>Placa:</strong> {vehiculo.placa}</p>
+                  <p style={{ color: '#f9f9f9' }}><strong>Marca:</strong> {vehiculo.marca}</p>
+                  <p style={{ color: '#f9f9f9' }}><strong>Modelo:</strong> {vehiculo.modelo}</p>
+                  <p style={{ color: '#f9f9f9' }}><strong>Estado:</strong> 
                     <span style={{ 
                       color: vehiculo.activo ? '#28a745' : '#dc3545',
                       fontWeight: 'bold',
@@ -194,7 +233,7 @@ const EjemploAPI = () => {
                       {vehiculo.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </p>
-                  {vehiculo.id && <p><strong>ID:</strong> {vehiculo.id}</p>}
+                  {vehiculo.id && <p style={{ color: '#f9f9f9' }}><strong>ID:</strong> {vehiculo.id}</p>}
                 </div>
               </div>
             ))}
