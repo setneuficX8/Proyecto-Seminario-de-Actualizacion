@@ -23,7 +23,7 @@ function Mapa() {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/mapbox/streets-v11', // Estilo del mapa
-        center: [-58.3816, -34.6037], // Coordenadas de Buenos Aires
+        center: [-77.03116, 3.8801], // Coordenadas de Tura
         zoom: 10.12
       });
 
