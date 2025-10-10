@@ -16,3 +16,6 @@ build/
 
 # Archivos de configuración de VSCode
 .vscode/
+
+// Archivos de entorno local
+.env.local
