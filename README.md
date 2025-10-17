@@ -1,4 +1,4 @@
-# Semana 8: ESTILOS UX/UI
+# Semanas 8 y 9: ESTILOS UX/UI + OPTIMIZACIÓN
 
 ## Integrantes del proyecto
 
