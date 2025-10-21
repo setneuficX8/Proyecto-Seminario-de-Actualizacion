@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
-function App2() {
+function Conection() {
   const [instruments, setInstruments] = useState([]);
 
   useEffect(() => {
@@ -26,4 +26,4 @@ function App2() {
   );
 }
 
-export default App2;
+export default Conection;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getVehiculos, createVehiculo, deleteVehiculo } from '../API/VehiculoAPI';
+import { getVehiculos, createVehiculo, deleteVehiculo } from '../API/VehiculoAPI'; 
 
-const EjemploAPI = () => {
+const GestionVehiculos = () => {
   const [vehiculos, setVehiculos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -82,14 +82,14 @@ const EjemploAPI = () => {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>Gestión de Vehículos</h1>
+    <div className="p-5 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Gestión de Vehículos</h1>
       
       {/* Formulario para crear vehículo */}
-      <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-        <h2>Agregar Nuevo Vehículo</h2>
+      <div className="mb-8 p-5 border border-gray-300 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold mb-4">Agregar Nuevo Vehículo</h2>
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+          <div className="grid grid-cols-2 gap-3 mb-4">
             <input
               type="text"
               name="placa"
@@ -97,7 +97,7 @@ const EjemploAPI = () => {
               value={formData.placa}
               onChange={handleInputChange}
               required
-              style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
             <input
               type="text"
@@ -106,7 +106,7 @@ const EjemploAPI = () => {
               value={formData.marca}
               onChange={handleInputChange}
               required
-              style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
             <input
               type="text"
@@ -115,15 +115,16 @@ const EjemploAPI = () => {
               value={formData.modelo}
               onChange={handleInputChange}
               required
-              style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-1.5 text-gray-700">
                 <input
                   type="checkbox"
                   name="activo"
                   checked={formData.activo}
                   onChange={(e) => setFormData({...formData, activo: e.target.checked})}
+                  className="form-checkbox h-4 w-4 text-blue-600 rounded"
                 />
                 Vehículo activo
               </label>
@@ -132,14 +133,8 @@ const EjemploAPI = () => {
           <button 
             type="submit" 
             disabled={loading}
-            style={{ 
-              padding: '10px 20px', 
-              backgroundColor: '#007bff', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
+            className={`py-2.5 px-5 bg-blue-600 text-white rounded-md transition duration-150 ease-in-out 
+                      ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-700 cursor-pointer'}`}
           >
             {loading ? 'Guardando...' : 'Agregar Vehículo'}
           </button>
@@ -148,92 +143,62 @@ const EjemploAPI = () => {
 
       {/* Lista de vehículos */}
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2>Lista de Vehículos</h2>
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-2xl font-semibold">Lista de Vehículos</h2>
           <button 
             onClick={cargarVehiculos}
             disabled={loading}
-            style={{ 
-              padding: '8px 16px', 
-              backgroundColor: '#28a745', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
+            className={`py-2 px-4 bg-green-600 text-white rounded-md transition duration-150 ease-in-out 
+                      ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-green-700 cursor-pointer'}`}
           >
             {loading ? 'Cargando...' : 'Actualizar'}
           </button>
         </div>
 
         {error && (
-          <div style={{ 
-            padding: '10px', 
-            backgroundColor: '#f8d7da', 
-            color: '#721c24', 
-            border: '1px solid #f5c6cb', 
-            borderRadius: '4px',
-            marginBottom: '20px'
-          }}>
+          <div className="p-2.5 bg-red-100 text-red-800 border border-red-400 rounded-md mb-5" role="alert">
             {error}
           </div>
         )}
 
         {loading && vehiculos.length === 0 ? (
-          <p>Cargando vehículos...</p>
+          <p className="text-gray-600 italic">Cargando vehículos...</p>
         ) : vehiculos.length === 0 ? (
-          <p>No hay vehículos registrados</p>
+          <p className="text-gray-600 italic">No hay vehículos registrados</p>
         ) : (
-          <div style={{ display: 'grid', gap: '15px' }}>
+          <div className="grid gap-4">
             {Array.isArray(vehiculos) && vehiculos.map((vehiculo, index) => (
               <div 
                 key={vehiculo.id || index}
-                style={{ 
-                  padding: '15px', 
-                  border: '1px solid #ddd', 
-                  borderRadius: '8px',
-                  backgroundColor: '#333'
-                }}
+                className="p-4 border border-gray-300 rounded-lg bg-gray-700 shadow-lg"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <h3 style={{ margin: '0', color: '#f9f9f9' }}>
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="m-0 text-lg font-semibold text-gray-50">
                     {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo}
                   </h3>
                   {vehiculo.id && (
                     <button
                       onClick={() => handleDelete(vehiculo.id)}
                       disabled={loading}
-                      style={{
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '6px 12px',
-                        fontSize: '12px',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.6 : 1,
-                        transition: 'all 0.2s ease'
-                      }}
+                      className={`bg-red-600 text-white rounded-md py-1.5 px-3 text-xs 
+                                  transition duration-150 ease-in-out
+                                  ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-red-700 cursor-pointer'}`}
                       title="Eliminar vehículo"
                     >
                       🗑️ Eliminar
                     </button>
                   )}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
-                  <p style={{ color: '#f9f9f9' }}><strong>Placa:</strong> {vehiculo.placa}</p>
-                  <p style={{ color: '#f9f9f9' }}><strong>Marca:</strong> {vehiculo.marca}</p>
-                  <p style={{ color: '#f9f9f9' }}><strong>Modelo:</strong> {vehiculo.modelo}</p>
-                  <p style={{ color: '#f9f9f9' }}><strong>Estado:</strong> 
-                    <span style={{ 
-                      color: vehiculo.activo ? '#28a745' : '#dc3545',
-                      fontWeight: 'bold',
-                      marginLeft: '5px'
-                    }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  <p className="text-gray-50"><strong>Placa:</strong> {vehiculo.placa}</p>
+                  <p className="text-gray-50"><strong>Marca:</strong> {vehiculo.marca}</p>
+                  <p className="text-gray-50"><strong>Modelo:</strong> {vehiculo.modelo}</p>
+                  <p className="text-gray-50"><strong>Estado:</strong> 
+                    <span className={`${vehiculo.activo ? 'text-green-400' : 'text-red-400'} font-bold ml-1`}>
                       {vehiculo.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </p>
-                  {vehiculo.id && <p style={{ color: '#f9f9f9' }}><strong>ID:</strong> {vehiculo.id}</p>}
+                  {vehiculo.id && <p className="text-gray-50"><strong>ID:</strong> {vehiculo.id}</p>}
                 </div>
               </div>
             ))}
@@ -244,4 +209,4 @@ const EjemploAPI = () => {
   );
 };
 
-export default EjemploAPI;
+export default GestionVehiculos;

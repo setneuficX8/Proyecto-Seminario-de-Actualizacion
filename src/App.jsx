@@ -4,7 +4,7 @@ import './App.css'
 import PrivateRoute from './components/PrivateRoute';
 import Login from './components/Login';
 import Mapa from './components/Mapa';
-import EjemploAPI from './components/EjemploAPI';
+import GestionVehiculos from './components/GestionVehiculos';
 
 const Nosotros = lazy(() => delay(import('./components/Nosotros')))
 const Ruta = lazy(() => delay(import('./components/Ruta')))
@@ -43,8 +43,8 @@ function App() {
                   <Nosotros />
                 </PrivateRoute>
               } />
-              <Route path="/ejemplo-api" element={
-                  <EjemploAPI />
+              <Route path="/gestion-vehiculos" element={
+                  <GestionVehiculos />
                 
               } />
               <Route path="/ruta" element={
