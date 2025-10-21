@@ -58,7 +58,7 @@ export const createVehiculo = async (data) => {
 // Eliminar un vehículo
 export const deleteVehiculo = async (id) => {
   try {
-    const url = `${API_BASE}/vehiculos/${id}`;
+    const url = `${API_BASE}/vehiculos/${id}?perfil_id=${PERFIL_ID}`;
     console.log('DELETE URL:', url);
     
     const response = await fetch(url, {
@@ -86,6 +86,6 @@ export const deleteVehiculo = async (id) => {
     }
   } catch (error) {
     console.error("Error al eliminar vehículo:", error);
-    throw error;
+    throw error; 
   }
 };
