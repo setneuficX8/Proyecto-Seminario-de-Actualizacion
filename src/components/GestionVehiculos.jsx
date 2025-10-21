@@ -83,11 +83,11 @@ const GestionVehiculos = () => {
 
   return (
     <div className="p-5 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Gestión de Vehículos</h1>
+      <h1 className="text-3xl font-bold mb-6 text-white">Gestión de Vehículos</h1>
       
       {/* Formulario para crear vehículo */}
       <div className="mb-8 p-5 border border-gray-300 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Agregar Nuevo Vehículo</h2>
+        <h2 className="text-xl font-semibold mb-4 text-white">Agregar Nuevo Vehículo</h2>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <input
@@ -118,7 +118,7 @@ const GestionVehiculos = () => {
               className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             />
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-1.5 text-gray-700">
+              <label className="flex items-center gap-1.5 text-gray-400">
                 <input
                   type="checkbox"
                   name="activo"
@@ -144,7 +144,7 @@ const GestionVehiculos = () => {
       {/* Lista de vehículos */}
       <div>
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-2xl font-semibold">Lista de Vehículos</h2>
+          <h2 className="text-2xl font-semibold text-white">Lista de Vehículos</h2>
           <button 
             onClick={cargarVehiculos}
             disabled={loading}
@@ -162,9 +162,9 @@ const GestionVehiculos = () => {
         )}
 
         {loading && vehiculos.length === 0 ? (
-          <p className="text-gray-600 italic">Cargando vehículos...</p>
+          <p className="text-white italic">Cargando vehículos...</p>
         ) : vehiculos.length === 0 ? (
-          <p className="text-gray-600 italic">No hay vehículos registrados</p>
+          <p className="text-white italic">No hay vehículos registrados</p>
         ) : (
           <div className="grid gap-4">
             {Array.isArray(vehiculos) && vehiculos.map((vehiculo, index) => (
@@ -185,20 +185,20 @@ const GestionVehiculos = () => {
                                   ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-red-700 cursor-pointer'}`}
                       title="Eliminar vehículo"
                     >
-                      🗑️ Eliminar
+                      Eliminar
                     </button>
                   )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                  <p className="text-gray-50"><strong>Placa:</strong> {vehiculo.placa}</p>
-                  <p className="text-gray-50"><strong>Marca:</strong> {vehiculo.marca}</p>
-                  <p className="text-gray-50"><strong>Modelo:</strong> {vehiculo.modelo}</p>
-                  <p className="text-gray-50"><strong>Estado:</strong> 
+                  <p className="text-white"><strong>Placa:</strong> {vehiculo.placa}</p>
+                  <p className="text-white"><strong>Marca:</strong> {vehiculo.marca}</p>
+                  <p className="text-white"><strong>Modelo:</strong> {vehiculo.modelo}</p>
+                  <p className="text-white"><strong>Estado:</strong> 
                     <span className={`${vehiculo.activo ? 'text-green-400' : 'text-red-400'} font-bold ml-1`}>
                       {vehiculo.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </p>
-                  {vehiculo.id && <p className="text-gray-50"><strong>ID:</strong> {vehiculo.id}</p>}
+                  {vehiculo.id && <p className="text-white"><strong>ID:</strong> {vehiculo.id}</p>}
                 </div>
               </div>
             ))}
