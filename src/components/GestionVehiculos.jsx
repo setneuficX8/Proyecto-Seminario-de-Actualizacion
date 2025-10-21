@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getVehiculos, createVehiculo, deleteVehiculo } from '../API/VehiculoAPI'; 
 
-const EjemploAPI = () => {
+const GestionVehiculos = () => {
   const [vehiculos, setVehiculos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -209,4 +209,4 @@ const EjemploAPI = () => {
   );
 };
 
-export default EjemploAPI;
+export default GestionVehiculos;
