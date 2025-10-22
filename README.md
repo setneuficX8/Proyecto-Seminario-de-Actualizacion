@@ -1,4 +1,4 @@
-# Semanas 8 y 9: ESTILOS UX/UI + OPTIMIZACIÓN
+# Semana 10 (SPRINT 1): AUTENTICACIÓN
 
 ## Integrantes del proyecto
 
@@ -9,58 +9,7 @@
 
 ---
 
-Tanto la **UX** (*Experiencia de Usuario*) y la **UI** (*Interfaz de Usuario*) son lo que conforma la parte visual de una aplicación web, móvil, de escritorio, etc. La UI se encarga de la apariencia y la interactividad. Por su parte, el UX abarca lo que tiene que ver con la interacción del usuario con el software. Juntos aseguran tanto la funcionalidad como la satisfacción del usuario.
+## ¿QUÉ ES LA AUTENTICACIÓN?
 
----
-
-## Implementaciones UX/UI en el Proyecto
-
-### 1. Estructura de Componentes
-
-Hemos organizado los componentes para facilitan la reutilización y el mantenimiento del código:
-
-- **Home.jsx**: Componente principal que actúa como punto de entrada de la aplicación.
-- **GestionVehiculos.jsx**: Interfaz para la gestión de los vehículos.
-- **Mapa.jsx**: Componente el mapa interactivo que provee Mapbox.
-- **PrivateRoute.jsx**: Componente que protege las rutas y las mantiene privadas de usarios no autorizados.
-
----
-### 2. Estilos y Diseño Visual
-
-- #### Estilos Globales
-El archivo `index.css` define los estilos base de la página.
-
-- #### Estilos de Componentes
-     - **Mapa.css**: Estilos dedicados para la visualización del mapa, incluyendo controles, marcadores y elementos de interfaz geográfica que provee Mapbox.
-
-### 3. Integración con Mapbox
-
-El componente `Mapa.jsx` implementa la visualización interactiva de datos geoespaciales:
-
-```javascript
-import { Map } from 'react-map-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-```
-
-### 4. Optimización
-
-#### 4.1 Gestión de Estados de Carga
-
-La aplicación implementa estados de carga para mejorar la experiencia del usuario durante operaciones asíncronas:
-
-- **Estados de Loading**: Se utilizan variables de estado como `loading` o `isLoading` para indicar cuando se están realizando operaciones que requieren tiempo de procesamiento.
-- **Feedback Visual**: Durante las operaciones de carga, se muestran indicadores visuales (spinners, mensajes de "Cargando...") para informar al usuario que la aplicación está trabajando.
-- **Prevención de Acciones Duplicadas**: Los botones y formularios se deshabilitan durante las operaciones de carga para evitar envíos duplicados o acciones concurrentes.
-
-```javascript
-const [loading, setLoading] = useState(false);
-
-const handleSubmit = async () => {
-  setLoading(true);
-  try {
-    // Operación asíncrona
-    await operacionAPI();
-  } finally {
-    setLoading(false);
-  }
-};
+Es un proceso utilizado para verificar/confirmar que solo se use la web por personas registradas en esta. Su importancia radica en la protección de datos y el mantenimiento de la confidencialidad de la información sensible.
+> Un concepto que relacionado a la autnticación es la autorización, la cual define el alcance de lo que puede hacer cada usuario en el sistema. El alcance se clasifica por roles.
