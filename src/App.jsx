@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react'
 // Utilizando lazy loading para los componentes
 const Mapa = lazy(() => import('./Mapbox/Mapa'));
 const GestionVehiculos = lazy(() => import('./components/GestionVehiculos'));
+const RegisterSupabase = lazy(() => import('./Supabase/RegisterSupabase'));
 
 function App() {
   return (
@@ -45,6 +46,13 @@ function App() {
               >
                 <span className="flex items-center space-x-2">
                   <span>Gestión de Vehículos</span>
+                </span>
+              </Link>
+              <Link
+                to="/RegisterSupabase"
+              >
+                <span className="flex items-center space-x-2">
+                  <span>Registro</span>
                 </span>
               </Link>
             </div>
@@ -99,6 +107,7 @@ function App() {
               } />
               <Route path="/mapa" element={<Mapa />} />
               <Route path="/gestion-vehiculos" element={<GestionVehiculos />} />
+              <Route path="/RegisterSupabase" element={<RegisterSupabase />} />
             </Routes>
           </Suspense>
         </main>
@@ -107,7 +116,7 @@ function App() {
         <footer className="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-6 mt-auto border-t border-sky-400">
           <div className="max-w-7xl mx-auto px-4 text-center">
             <p className="text-sm text-gray-300">
-              © 2024 Sistema de Recolección. Todos los derechos reservados.
+              {new Date().getFullYear()} Sistema de Recolección. Todos los derechos reservados.
             </p>
           </div>
         </footer>
