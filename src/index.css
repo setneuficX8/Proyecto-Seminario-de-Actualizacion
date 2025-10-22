@@ -1,2 +1,10 @@
 @import "tailwindcss";
 @import url();@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Montserrat:wght@400;500&display=swap');
+
+html, body, #root {
+  height: 100%;
+  margin: 0; /* elimina el margen por defecto que genera la franja */
+  background: linear-gradient(135deg, #0f1724 0%, #0b1220 100%); /* coincide con tu gradiente */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

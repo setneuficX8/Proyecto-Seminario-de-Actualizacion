@@ -86,7 +86,7 @@ const GestionVehiculos = () => {
       <h1 className="text-3xl font-bold mb-6 text-white">Gestión de Vehículos</h1>
       
       {/* Formulario para crear vehículo */}
-      <div className="mb-8 p-5 border border-gray-300 rounded-lg shadow-md">
+      <div className="mb-8 p-5 border border-gray-300 rounded-lg shadow-md bg-slate-800/50 backdrop-blur-sm">
         <h2 className="text-xl font-semibold mb-4 text-white">Agregar Nuevo Vehículo</h2>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -97,7 +97,7 @@ const GestionVehiculos = () => {
               value={formData.placa}
               onChange={handleInputChange}
               required
-              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-slate-700 text-white placeholder-gray-400 placeholder:text-sm"
             />
             <input
               type="text"
@@ -106,7 +106,7 @@ const GestionVehiculos = () => {
               value={formData.marca}
               onChange={handleInputChange}
               required
-              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-slate-700 text-white placeholder-gray-400 placeholder:text-sm"
             />
             <input
               type="text"
@@ -115,10 +115,10 @@ const GestionVehiculos = () => {
               value={formData.modelo}
               onChange={handleInputChange}
               required
-              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-slate-700 text-white placeholder-gray-400 placeholder:text-sm"
             />
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-1.5 text-gray-400">
+              <label className="flex items-center gap-1.5 text-gray-200 font-medium">
                 <input
                   type="checkbox"
                   name="activo"

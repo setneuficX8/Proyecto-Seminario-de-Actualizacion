@@ -44,21 +44,21 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 font-poppins">
       {/* Header de Bienvenida */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-6 px-4 shadow-lg">
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-center font-montserrat tracking-wide">
+      <div className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md text-white py-6 px-4 shadow-lg border-b border-white/10">
+        <h1 className="mt-0 text-2xl md:text-4xl lg:text-5xl font-bold text-center font-montserrat tracking-wide drop-shadow-lg">
           BIENVENID@ A TU SISTEMA DE RECOLECCIÓN
         </h1>
       </div>
 
       {/* Navegación */}
-      <nav className="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-md border-t-4 border-sky-400">
+      <nav className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md text-white shadow-md border-t-4 border-sky-400">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-8 py-4">
             <Link 
               to="/" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2">
+              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <span>Inicio</span>
               </span>
             </Link>
@@ -67,7 +67,7 @@ function AppContent() {
               to="/mapa" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2">
+              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <span>Mapa de Rutas</span>
               </span>
             </Link>
@@ -76,7 +76,7 @@ function AppContent() {
               to="/gestion-vehiculos" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2">
+              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <span>Gestión de Vehículos</span>
               </span>
             </Link>
@@ -85,7 +85,7 @@ function AppContent() {
               to="/RegisterSupabase"
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2">
+              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
                 <span>Registro</span>
               </span>
             </Link>
@@ -125,7 +125,7 @@ function AppContent() {
 function Footer(){
   return(
     <>
-        <footer className="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-6 mt-auto border-t border-sky-400">
+        <footer className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md text-white py-6 border-t border-sky-400">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-sm text-gray-300">
             {new Date().getFullYear()} Sistema de Recolección. Todos los derechos reservados.
