@@ -1,12 +1,16 @@
 const API_BASE = "http://apirecoleccion.gonzaloandreslucio.com/api";
 const PERFIL_ID = "50dad3d9-66ea-42a1-a06f-c502606d638f";
+
 // Para crear una nueva ruta
 export const createRuta = async (data) => {
   try {
     const rutaData = {
       nombre_ruta: data.nombre_ruta,
-      calles: data.calles, // Array de IDs de calles
-      perfil_id: PERFIL_ID
+      perfil_id: PERFIL_ID,
+      shape: {
+        type: "LineString",
+        coordinates: data.coordinates // Array de [longitud, latitud]
+      }
     };
 
     const response = await fetch(`${API_BASE}/rutas`, {
