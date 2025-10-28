@@ -103,18 +103,13 @@ function Mapa() {
 
     try {
       setGuardando(true)
-      
-      // Extraer las calles de la ruta (coordenadas o nombres)
-      const calles = rutaActual.legs.map(leg => ({
-        distancia: leg.distance,
-        duracion: leg.duration,
-        pasos: leg.steps.map(step => step.name || 'Sin nombre')
-      }))
+
+      // Esto es para xtraer las coordenadas de la geometría de la ruta
+      const coordinates = rutaActual.geometry.coordinates
 
       const dataRuta = {
         nombre_ruta: nombreRuta,
-        calles: calles, // Ajusta según lo que espere tu API
-        geometria: rutaActual.geometry // Opcional: guardar la geometría completa
+        coordinates: coordinates
       }
 
       await createRuta(dataRuta)
@@ -123,7 +118,7 @@ function Mapa() {
       setNombreRuta('')
       setRutaActual(null)
       
-      // Opcional: limpiar la ruta del mapa
+      // Para limpiar la ruta del mapa
       if (directionsRef.current) {
         directionsRef.current.removeRoutes()
       }
@@ -146,7 +141,7 @@ function Mapa() {
   }
 
   return (
-    <>
+    <div className="relative w-full h-full">
       {isLoading && (
         <div style={{ padding: '20px', textAlign: 'center' }}>
           <p>Cargando mapa...</p>
@@ -158,7 +153,7 @@ function Mapa() {
         <div className="absolute top-4 right-4 z-10 bg-white p-4 rounded-lg shadow-lg max-w-sm">
           <form onSubmit={handleGuardarRuta} className="space-y-3">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Guardar Ruta</h3>
+              <h3 className="text-lg font-semibold mb-2">Crea una Ruta</h3>
               <p className="text-sm text-gray-600 mb-2">
                 Distancia: {(rutaActual.distance / 1000).toFixed(2)} km
               </p>
@@ -194,7 +189,7 @@ function Mapa() {
       )}
       
       <div id='map-container' ref={mapContainerRef}/>
-    </>
+    </div>
   )
 }
 
