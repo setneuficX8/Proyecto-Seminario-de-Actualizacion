@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getVehiculos, createVehiculo, deleteVehiculo } from '../API/VehiculoAPI'; 
+import { getVehiculos, createVehiculo, deleteVehiculo } from '../services/VehiculosService'; 
 
 const GestionVehiculos = () => {
   const [vehiculos, setVehiculos] = useState([]);
@@ -22,7 +22,8 @@ const GestionVehiculos = () => {
     setError(null);
     try {
       const data = await getVehiculos();
-      console.log('Datos recibidos:', data);
+      console.log('📦 Datos recibidos del servicio:', data);
+      console.log('📊 Primer vehículo (si existe):', data[0]);
       
       // Verificar si data es un array o si viene dentro de una propiedad
       if (Array.isArray(data)) {
@@ -198,7 +199,24 @@ const GestionVehiculos = () => {
                       {vehiculo.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </p>
-                  {vehiculo.id && <p className="text-white"><strong>ID:</strong> {vehiculo.id}</p>}
+                  {/* Mostrar el ID de la API externa (el real) */}
+                  {vehiculo.vehiculo_id_api && (
+                    <p className="text-white">
+                      <strong>ID API:</strong> {vehiculo.vehiculo_id_api}
+                    </p>
+                  )}
+                  {/* Mostrar información del chofer si está disponible */}
+                  {vehiculo.chofer_nombre_completo && (
+                    <p className="text-white col-span-full">
+                      <strong>Chofer:</strong> {vehiculo.chofer_nombre_completo}
+                    </p>
+                  )}
+                  {/* ID de Supabase (UUID) - solo para debug, puedes ocultarlo */}
+                  {vehiculo.id && (
+                    <p className="text-gray-400 text-xs col-span-full">
+                      <strong>ID Interno:</strong> {vehiculo.id}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
