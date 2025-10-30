@@ -6,18 +6,39 @@ import { supabase } from './Conection';
 function RegisterSupabase() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
+    const [Firstname, setFirstname] = useState('');
+    const [Lastname, setLastname] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await supabase.auth.signUp({
+            // 1. Registrar usuario en Authentication
+            const { data, error } = await supabase.auth.signUp({
                 email,
-                password
-            })
-            console.log(res);
+                password,
+                options: {
+                    data: {
+                        first_name: Firstname,
+                        last_name: Lastname,
+                        display_name: `${Firstname} ${Lastname}`
+                    }
+                }
+            });
+
+            if (error) {
+                console.error('Error al registrar:', error);
+                alert(`Error: ${error.message}`);
+                return;
+            }
+
+            console.log('Usuario registrado:', data);
+            
+            // El trigger de Supabase creará automáticamente el registro en la tabla Chofer
+            alert('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
+
         } catch (error) {
-            console.error('Error al registrar el usuario:', error);
+            console.error('Error inesperado:', error);
+            alert('Ocurrió un error inesperado. Intenta de nuevo.');
         }
     }
 
@@ -33,6 +54,38 @@ function RegisterSupabase() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+
+                    {/* Campo de Nombre */}
+                    <div>
+                        <label htmlFor="Firstname" className="block text-sm font-semibold text-gray-300 mb-2">
+                            Nombre
+                        </label>
+                        <input
+                            type="text"
+                            id="Firstname"
+                            name="Firstname"
+                            required
+                            placeholder="Tu nombre"
+                            onChange={(e) => setFirstname(e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition duration-200"
+                        />
+                    </div>
+                    {/* Campo de Apellido */}
+                    <div>
+                        <label htmlFor="Lastname" className="block text-sm font-semibold text-gray-300 mb-2">
+                            Apellido
+                        </label>
+                        <input
+                            type="text"
+                            id="Lastname"
+                            name="Lastname"
+                            required
+                            placeholder="Tu apellido"
+                            onChange={(e) => setLastname(e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition duration-200"
+                        />
+                    </div>
+
                     {/* Campo de Email */}
                     <div>
                         <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
