@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getVehiculos, createVehiculo, deleteVehiculo } from '../services/VehiculosService'; 
+import { getVehiculos, createVehiculo, deleteVehiculo,updateVehiculo } from '../services/VehiculosService'; 
 
 const GestionVehiculos = () => {
   const [vehiculos, setVehiculos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [editando, setEditando] = useState(null); // ID del vehículo en edición
   const [formData, setFormData] = useState({
     placa: '',
     marca: '',
@@ -54,15 +55,41 @@ const GestionVehiculos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      await createVehiculo(formData);
+      if (editando) {
+        // Actualizar vehículo existente
+        await updateVehiculo(editando, formData);
+        setEditando(null);
+      } else {
+        // Crear nuevo vehículo
+        await createVehiculo(formData);
+      }
       setFormData({ placa: '', marca: '', modelo: '', activo: true });
       await cargarVehiculos(); // Recargar la lista
     } catch (err) {
-      setError('Error al crear vehículo');
+      setError(editando ? 'Error al actualizar vehículo: ' + err.message : 'Error al crear vehículo: ' + err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEdit = (vehiculo) => {
+    setEditando(vehiculo.id);
+    setFormData({
+      placa: vehiculo.placa,
+      marca: vehiculo.marca,
+      modelo: vehiculo.modelo,
+      activo: vehiculo.activo
+    });
+    // Scroll al formulario
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelarEdicion = () => {
+    setEditando(null);
+    setFormData({ placa: '', marca: '', modelo: '', activo: true });
+    setError(null);
   };
 
   const handleDelete = async (id) => {
@@ -86,9 +113,13 @@ const GestionVehiculos = () => {
     <div className="p-5 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-white">Gestión de Vehículos</h1>
       
-      {/* Formulario para crear vehículo */}
-      <div className="mb-8 p-5 border border-gray-300 rounded-lg shadow-md bg-slate-800/50 backdrop-blur-sm">
-        <h2 className="text-xl font-semibold mb-4 text-white">Agregar Nuevo Vehículo</h2>
+      {/* Formulario para crear/editar vehículo */}
+      <div className={`mb-8 p-5 border rounded-lg shadow-md backdrop-blur-sm ${
+        editando ? 'border-yellow-500 bg-yellow-900/30' : 'border-gray-300 bg-slate-800/50'
+      }`}>
+        <h2 className="text-xl font-semibold mb-4 text-white">
+          {editando ? '✏️ Editar Vehículo' : '➕ Agregar Nuevo Vehículo'}
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <input
@@ -131,14 +162,28 @@ const GestionVehiculos = () => {
               </label>
             </div>
           </div>
-          <button 
-            type="submit" 
-            disabled={loading}
-            className={`py-2.5 px-5 bg-blue-600 text-white rounded-md transition duration-150 ease-in-out 
-                      ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-700 cursor-pointer'}`}
-          >
-            {loading ? 'Guardando...' : 'Agregar Vehículo'}
-          </button>
+          <div className="flex gap-3">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className={`py-2.5 px-5 text-white rounded-md transition duration-150 ease-in-out 
+                        ${editando ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'}
+                        ${loading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+            >
+              {loading ? 'Guardando...' : editando ? 'Actualizar Vehículo' : 'Agregar Vehículo'}
+            </button>
+            {editando && (
+              <button 
+                type="button"
+                onClick={handleCancelarEdicion}
+                disabled={loading}
+                className={`py-2.5 px-5 bg-gray-600 text-white rounded-md transition duration-150 ease-in-out 
+                          ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-gray-700 cursor-pointer'}`}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -178,16 +223,28 @@ const GestionVehiculos = () => {
                     {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo}
                   </h3>
                   {vehiculo.id && (
-                    <button
-                      onClick={() => handleDelete(vehiculo.id)}
-                      disabled={loading}
-                      className={`bg-red-600 text-white rounded-md py-1.5 px-3 text-xs 
-                                  transition duration-150 ease-in-out
-                                  ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-red-700 cursor-pointer'}`}
-                      title="Eliminar vehículo"
-                    >
-                      Eliminar
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(vehiculo)}
+                        disabled={loading}
+                        className={`bg-yellow-600 text-white rounded-md py-1.5 px-3 text-xs 
+                                    transition duration-150 ease-in-out
+                                    ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-yellow-700 cursor-pointer'}`}
+                        title="Editar vehículo"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => handleDelete(vehiculo.id)}
+                        disabled={loading}
+                        className={`bg-red-600 text-white rounded-md py-1.5 px-3 text-xs 
+                                    transition duration-150 ease-in-out
+                                    ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-red-700 cursor-pointer'}`}
+                        title="Eliminar vehículo"
+                      >
+                        🗑️ Eliminar
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
