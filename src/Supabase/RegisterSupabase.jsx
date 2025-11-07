@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from './Conection';
+import Swal from 'sweetalert2';
 
 function RegisterSupabase() {
     const [email, setEmail] = useState('');
@@ -28,18 +29,37 @@ function RegisterSupabase() {
 
             if (error) {
                 console.error('Error al registrar:', error);
-                alert(`Error: ${error.message}`);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al registrar',
+                    text: error.message,
+                    confirmButtonColor: '#0ea5e9'
+                });
                 return;
             }
 
             console.log('Usuario registrado:', data);
             
             // El trigger de Supabase creará automáticamente el registro en la tabla Chofer
-            alert('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Registro exitoso!',
+                text: 'Se ha enviado un correo de confirmación a tu email.',
+                showConfirmButton: true,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#0ea5e9',
+                timer: 5000,
+                timerProgressBar: true
+            });
 
         } catch (error) {
             console.error('Error inesperado:', error);
-            alert('Ocurrió un error inesperado. Intenta de nuevo.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error inesperado',
+                text: 'Ocurrió un error inesperado. Intenta de nuevo.',
+                confirmButtonColor: '#0ea5e9'
+            });
         }
     }
 
