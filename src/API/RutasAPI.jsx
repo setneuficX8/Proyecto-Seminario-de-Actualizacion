@@ -4,6 +4,7 @@ const PERFIL_ID = "50dad3d9-66ea-42a1-a06f-c502606d638f";
 // Para crear una nueva ruta
 export const createRuta = async (data) => {
   try {
+    console.log(data)
     const rutaData = {
       nombre_ruta: data.nombre_ruta,
       perfil_id: PERFIL_ID,

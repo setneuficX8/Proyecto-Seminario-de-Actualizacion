@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions'
+import polyline from '@mapbox/polyline';
 import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css'
 import { createRuta } from '../API/RutasAPI'
 
@@ -103,13 +104,16 @@ function Mapa() {
 
     try {
       setGuardando(true)
+      const coordenadas = polyline.decode(rutaActual.geometry);
+      console.log("coordenadas", coordenadas);
+      console.log(rutaActual)
 
       // Esto es para xtraer las coordenadas de la geometría de la ruta
       const coordinates = rutaActual.geometry.coordinates
 
       const dataRuta = {
         nombre_ruta: nombreRuta,
-        coordinates: coordinates
+        coordinates: coordenadas
       }
 
       await createRuta(dataRuta)
