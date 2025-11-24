@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../Supabase/Conection';
+import { useAuth } from '../hooks/useAuth';
 
 function Home() {
   const navigate = useNavigate();
+  const { isChofer } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -42,29 +44,60 @@ function Home() {
             Gestiona tus rutas de recolección y vehículos. 
             Utiliza nuestro sistema para optimizar tu gestión.
           </p>
-          <div className="grid md:grid-cols-2 gap-6">
-            <Link 
-              to="/mapa" 
-              className="group bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
-            >
-              <h3 className="text-xl font-semibold mb-2">Visualizar Rutas</h3>
-              <p className="text-sky-100">Explora el mapa de rutas de recolección</p>
-            </Link>
-            
-            <Link 
-              to="/gestion-vehiculos" 
+          
+          {isChofer ? (
+            /* Vista para Choferes */
+            <div className="grid gap-6">
+              <Link 
+                to="/perfil-chofer" 
+                className="group bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <h3 className="text-xl font-semibold mb-2">👤 Mi Perfil</h3>
+                <p className="text-sky-100">Ver mi información y asignación actual</p>
+              </Link>
+              
+              <Link 
+                to="/gestion-asignaciones" 
+                className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
+              >
+                <h3 className="text-xl font-semibold mb-2">📋 Mis Asignaciones</h3>
+                <p className="text-gray-300">Consultar mis asignaciones</p>
+              </Link>
+              
+              <Link 
+                to="/mapa" 
+                className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
+              >
+                <h3 className="text-xl font-semibold mb-2">🗺️ Visualizar Rutas</h3>
+                <p className="text-gray-300">Explorar el mapa de rutas</p>
+              </Link>
+            </div>
+          ) : (
+            /* Vista para Administradores */
+            <div className="grid md:grid-cols-2 gap-6">
+              <Link 
+                to="/mapa" 
+                className="group bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                <h3 className="text-xl font-semibold mb-2">Visualizar Rutas</h3>
+                <p className="text-sky-100">Explora el mapa de rutas de recolección</p>
+              </Link>
+              
+              <Link 
+                to="/gestion-vehiculos" 
+                className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
+              >
+                <h3 className="text-xl font-semibold mb-2">Gestionar Vehículos</h3>
+                <p className="text-gray-300">Administra tus vehículos de recolección</p>
+              </Link>
+              <Link to="/gestion-asignaciones"
               className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
-            >
-              <h3 className="text-xl font-semibold mb-2">Gestionar Vehículos</h3>
-              <p className="text-gray-300">Administra tus vehículos de recolección</p>
-            </Link>
-            <Link to="/gestion-asignaciones"
-            className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
-            >
-              <h3 className="text-xl font-semibold mb-2">Gestionar Asignaciones</h3>
-              <p className="text-gray-300">Administra las asignaciones </p>
-            </Link>
-          </div>
+              >
+                <h3 className="text-xl font-semibold mb-2">Gestionar Asignaciones</h3>
+                <p className="text-gray-300">Administra las asignaciones </p>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -20,8 +20,9 @@ function RegisterSupabase() {
                 password,
                 options: {
                     data: {
-                        first_name: Firstname,
-                        last_name: Lastname,
+                        nombre: Firstname,
+                        apellido: Lastname,
+                        rol: 'administrador', 
                         display_name: `${Firstname} ${Lastname}`
                     }
                 }
@@ -40,11 +41,11 @@ function RegisterSupabase() {
 
             console.log('Usuario registrado:', data);
             
-            // El trigger de Supabase creará automáticamente el registro en la tabla Chofer
+            // El trigger de Supabase creará automáticamente el registro en la tabla administrador
             Swal.fire({
                 icon: 'success',
                 title: '¡Registro exitoso!',
-                text: 'Se ha enviado un correo de confirmación a tu email.',
+                text: 'Se ha enviado un correo de confirmación a tu email. El trigger insertará tu usuario como administrador.',
                 showConfirmButton: true,
                 confirmButtonText: 'Entendido',
                 confirmButtonColor: '#0ea5e9',
