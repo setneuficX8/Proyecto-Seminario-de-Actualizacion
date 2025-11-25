@@ -259,24 +259,7 @@ const GestionVehiculos = () => {
                   className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 />
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Chofer Asignado</label>
-                <select
-                  name="chofer_id"
-                  value={formData.chofer_id}
-                  onChange={handleInputChange}
-                  className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                >
-                  <option value="">Sin asignar</option>
-                  {choferes.map(chofer => (
-                    <option key={chofer.id} value={chofer.id}>
-                      {chofer.nombre_completo}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                </div>
             
             <div className="mb-4">
               <label className="flex items-center gap-2 text-gray-200 font-medium cursor-pointer">

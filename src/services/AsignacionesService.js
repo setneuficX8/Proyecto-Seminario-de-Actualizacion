@@ -377,9 +377,7 @@ export const deleteAsignacion = async (asignacionId) => {
     }
 };
 
-/**
- * Obtener choferes activos disponibles
- */
+ // Obtener choferes activos disponibles
 export const getChoferesDisponibles = async () => {
     try {
         const { data, error } = await supabase
@@ -404,9 +402,9 @@ export const getChoferesDisponibles = async () => {
     }
 };
 
-/**
- * Obtener vehículos disponibles (sin asignación activa)
- */
+
+  // Obtener vehículos disponibles (sin asignación activa)
+ 
 export const getVehiculosDisponibles = async () => {
     try {
         const { data, error } = await supabase

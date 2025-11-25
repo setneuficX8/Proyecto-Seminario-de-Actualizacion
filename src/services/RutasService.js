@@ -1,6 +1,6 @@
 import { supabase } from '../Supabase/Conection';
 
-const API_BASE = "http://apirecoleccion.gonzaloandreslucio.com/api";
+const API_BASE = "https://apirecoleccion.gonzaloandreslucio.com/api";
 const PERFIL_ID = "50dad3d9-66ea-42a1-a06f-c502606d638f";
 
 
