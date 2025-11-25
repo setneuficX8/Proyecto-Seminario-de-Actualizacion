@@ -90,8 +90,18 @@ function Home() {
                 <h3 className="text-xl font-semibold mb-2">Gestionar Vehículos</h3>
                 <p className="text-gray-300">Administra tus vehículos de recolección</p>
               </Link>
-              <Link to="/gestion-asignaciones"
-              className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
+              
+              <Link 
+                to="/gestion-rutas" 
+                className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
+              >
+                <h3 className="text-xl font-semibold mb-2">Gestionar Rutas</h3>
+                <p className="text-gray-300">Administra las rutas de recolección</p>
+              </Link>
+              
+              <Link 
+                to="/gestion-asignaciones"
+                className="group bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white p-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg border border-sky-400"
               >
                 <h3 className="text-xl font-semibold mb-2">Gestionar Asignaciones</h3>
                 <p className="text-gray-300">Administra las asignaciones </p>

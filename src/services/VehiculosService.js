@@ -48,9 +48,7 @@ const verificarRolUsuario = async () => {
     };
 };
 
-/**
- * Obtener el chofer asociado al usuario autenticado (LEGACY - mantener para compatibilidad)
- */
+
 const getChoferDelUsuario = async () => {
     const { isChofer, choferData } = await verificarRolUsuario();
     
@@ -71,7 +69,7 @@ const getChoferDelUsuario = async () => {
  */
 export const getVehiculos = async () => {
     try {
-        console.log('📖 Obteniendo vehículos...');
+        console.log(' Obteniendo vehículos...');
         
         // Consulta básica
         const { data, error } = await supabase
@@ -80,12 +78,12 @@ export const getVehiculos = async () => {
             .order('created_at', { ascending: false });
         
         if (error) {
-            console.error('❌ Error al obtener vehículos:', error);
+            console.error(' Error al obtener vehículos:', error);
             throw error;
         }
         
         if (!data || data.length === 0) {
-            console.log('✅ No hay vehículos registrados');
+            console.log(' No hay vehículos registrados');
             return [];
         }
         
@@ -143,12 +141,12 @@ export const getVehiculos = async () => {
             })
         );
         
-        console.log('✅ Vehículos obtenidos:', vehiculosConInfo.length);
+        console.log(' Vehículos obtenidos:', vehiculosConInfo.length);
         
         return vehiculosConInfo;
         
     } catch (error) {
-        console.error("❌ Error en getVehiculos:", error);
+        console.error(" Error en getVehiculos:", error);
         throw error;
     }
 };
@@ -159,8 +157,8 @@ export const getVehiculos = async () => {
  */
 export const createVehiculo = async (vehiculoData) => {
     try {
-        console.log('🚀 Iniciando creación de vehículo...');
-        console.log('📦 Datos recibidos:', vehiculoData);
+        console.log(' Iniciando creación de vehículo...');
+        console.log(' Datos recibidos:', vehiculoData);
         
         // 1. Verificar que el usuario es ADMIN
         const { isAdmin, adminData } = await verificarRolUsuario();
@@ -169,10 +167,10 @@ export const createVehiculo = async (vehiculoData) => {
             throw new Error('Solo los administradores pueden crear vehículos');
         }
         
-        console.log('👤 Admin autorizado:', adminData);
+        console.log(' Admin autorizado:', adminData);
         
         // 2. Crear vehículo en la API externa CON perfil_id
-        console.log('🌐 Creando en API externa...');
+        console.log(' Creando en API externa...');
         const apiResponse = await fetch(`${API_BASE}/vehiculos`, {
             method: 'POST',
             headers: {
@@ -188,15 +186,15 @@ export const createVehiculo = async (vehiculoData) => {
 
         if (!apiResponse.ok) {
             const errorText = await apiResponse.text();
-            console.error('⚠️ Error en API externa:', errorText);
+            console.error(' Error en API externa:', errorText);
             throw new Error('Error al crear vehículo en API externa: ' + errorText);
         }
 
         const vehiculoApi = await apiResponse.json();
-        console.log('✅ Vehículo creado en API:', vehiculoApi);
+        console.log(' Vehículo creado en API:', vehiculoApi);
         
         // 3. Guardar en Supabase con el ID de la API y creado_por
-        console.log('💾 Guardando en Supabase con vehiculo_id_api:', vehiculoApi.id);
+        console.log(' Guardando en Supabase con vehiculo_id_api:', vehiculoApi.id);
         
         const { data: vehiculoLocal, error: errorSupabase } = await supabase
             .from('vehiculos')
@@ -215,11 +213,11 @@ export const createVehiculo = async (vehiculoData) => {
             .single();
         
         if (errorSupabase) {
-            console.error('⚠️ Error al guardar en Supabase:', errorSupabase);
+            console.error(' Error al guardar en Supabase:', errorSupabase);
             throw new Error('No se pudo crear el vehículo en Supabase: ' + errorSupabase.message);
         }
         
-        console.log('✅ Vehículo creado completamente:', vehiculoLocal);
+        console.log(' Vehículo creado completamente:', vehiculoLocal);
         
         return {
             ...vehiculoLocal,
@@ -229,7 +227,7 @@ export const createVehiculo = async (vehiculoData) => {
         };
         
     } catch (error) {
-        console.error("❌ Error al crear vehículo:", error);
+        console.error(" Error al crear vehículo:", error);
         throw error;
     }
 };
@@ -240,7 +238,7 @@ export const createVehiculo = async (vehiculoData) => {
  */
 export const updateVehiculo = async (vehiculoId, vehiculoData) => {
     try {
-        console.log('🔄 Actualizando vehículo:', vehiculoId);
+        console.log(' Actualizando vehículo:', vehiculoId);
         
         // 1. Verificar que el usuario es ADMIN
         const { isAdmin } = await verificarRolUsuario();
@@ -261,7 +259,7 @@ export const updateVehiculo = async (vehiculoId, vehiculoData) => {
         }
         
         // 3. Actualizar en API externa CON perfil_id
-        console.log('🌐 Actualizando en API externa...');
+        console.log(' Actualizando en API externa...');
         const apiResponse = await fetch(`${API_BASE}/vehiculos/${vehiculoActual.vehiculo_id_api}`, {
             method: 'PUT',
             headers: {
@@ -277,11 +275,11 @@ export const updateVehiculo = async (vehiculoId, vehiculoData) => {
         
         if (!apiResponse.ok) {
             const errorText = await apiResponse.text();
-            console.error('⚠️ Error en API externa:', errorText);
+            console.error(' Error en API externa:', errorText);
             throw new Error('Error al actualizar en API externa: ' + errorText);
         }
         
-        console.log('✅ Vehículo actualizado en API externa');
+        console.log(' Vehículo actualizado en API externa');
         
         // 4. Actualizar en Supabase
         const updateData = {
@@ -303,11 +301,11 @@ export const updateVehiculo = async (vehiculoId, vehiculoData) => {
             throw new Error('Error al actualizar en Supabase: ' + errorUpdate.message);
         }
         
-        console.log('✅ Vehículo actualizado correctamente');
+        console.log(' Vehículo actualizado correctamente');
         return vehiculoActualizado;
         
     } catch (error) {
-        console.error("❌ Error al actualizar vehículo:", error);
+        console.error(" Error al actualizar vehículo:", error);
         throw error;
     }
 };
@@ -318,7 +316,7 @@ export const updateVehiculo = async (vehiculoId, vehiculoData) => {
  */
 export const deleteVehiculo = async (vehiculoId) => {
     try {
-        console.log('🗑️ Eliminando vehículo:', vehiculoId);
+        console.log(' Eliminando vehículo:', vehiculoId);
         
         // 1. Verificar que el usuario es ADMIN
         const { isAdmin } = await verificarRolUsuario();
@@ -360,7 +358,7 @@ export const deleteVehiculo = async (vehiculoId) => {
         }
         
         // 5. Eliminar de API externa CON perfil_id
-        console.log('🌐 Eliminando de API externa...');
+        console.log(' Eliminando de API externa...');
         const apiResponse = await fetch(`${API_BASE}/vehiculos/${vehiculo.vehiculo_id_api}?perfil_id=${PERFIL_ID}`, {
             method: 'DELETE',
             headers: {
@@ -369,23 +367,20 @@ export const deleteVehiculo = async (vehiculoId) => {
         });
         
         if (!apiResponse.ok) {
-            console.warn('⚠️ El vehículo fue eliminado de Supabase pero hubo un error en la API externa');
+            console.warn(' El vehículo fue eliminado de Supabase pero hubo un error en la API externa');
         } else {
-            console.log('✅ Vehículo eliminado de API externa');
+            console.log(' Vehículo eliminado de API externa');
         }
         
-        console.log('✅ Vehículo eliminado correctamente');
+        console.log(' Vehículo eliminado correctamente');
         return { success: true, message: 'Vehículo eliminado correctamente' };
         
     } catch (error) {
-        console.error("❌ Error al eliminar vehículo:", error);
+        console.error(" Error al eliminar vehículo:", error);
         throw error;
     }
 };
 
-/**
- * Obtener todos los choferes disponibles (para selector de admin)
- */
 
 /**
  * Obtener todos los choferes disponibles (para selector de admin)
@@ -406,7 +401,7 @@ export const getChoferesDisponibles = async () => {
         })) || [];
         
     } catch (error) {
-        console.error("❌ Error al obtener choferes:", error);
+        console.error(" Error al obtener choferes:", error);
         throw error;
     }
 };
@@ -454,7 +449,7 @@ export const getVehiculoById = async (vehiculoId) => {
         };
         
     } catch (error) {
-        console.error("❌ Error al obtener vehículo:", error);
+        console.error(" Error al obtener vehículo:", error);
         throw error;
     }
 };

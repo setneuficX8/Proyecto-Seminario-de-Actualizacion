@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import {
-  getAsignaciones,
-  getAsignacionesActivas,
-  createAsignacion,
-  cambiarEstadoAsignacion,
-  deleteAsignacion,
-  getChoferesDisponibles,
-  getVehiculosDisponibles,
-  getRutasActivas
-} from '../services/AsignacionesService';
+import {getAsignaciones,getAsignacionesActivas,createAsignacion,cambiarEstadoAsignacion,deleteAsignacion,getChoferesDisponibles,getVehiculosDisponibles,getRutasActivas} from '../services/AsignacionesService';
 
 const GestionAsignaciones = () => {
   const { isAdmin, isChofer, loading: authLoading, userData } = useAuth();
@@ -193,7 +184,7 @@ const GestionAsignaciones = () => {
             onClick={() => setMostrarFormulario(!mostrarFormulario)}
             className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md font-semibold flex items-center gap-2"
           >
-            {mostrarFormulario ? '❌ Cancelar' : '➕ Nueva Asignación'}
+            {mostrarFormulario ? ' Cancelar' : ' Nueva Asignación'}
           </button>
         </div>
       )}
@@ -321,7 +312,7 @@ const GestionAsignaciones = () => {
                 className={`py-3 px-6 bg-sky-600 text-white rounded-md transition duration-150 ease-in-out font-semibold
                           ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-sky-700 cursor-pointer'}`}
               >
-                {loading ? 'Creando...' : '✅ Crear Asignación'}
+                {loading ? 'Creando...' : ' Crear Asignación'}
               </button>
               <button
                 type="button"
@@ -400,7 +391,7 @@ const GestionAsignaciones = () => {
             className={`py-2 px-4 bg-green-600 text-white rounded-md transition duration-150 ease-in-out 
                       ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-green-700 cursor-pointer'}`}
           >
-            {loading ? 'Cargando...' : '🔄 Actualizar'}
+            {loading ? 'Cargando...' : ' Actualizar'}
           </button>
         </div>
 
@@ -456,7 +447,7 @@ const GestionAsignaciones = () => {
                             className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-3 text-sm transition"
                             title="Marcar como completada"
                           >
-                            ✅ Completar
+                             Completar
                           </button>
                           <button
                             onClick={() => handleCambiarEstado(asignacion.asignacion_id, 'cancelada')}
@@ -464,7 +455,7 @@ const GestionAsignaciones = () => {
                             className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-md py-2 px-3 text-sm transition"
                             title="Cancelar asignación"
                           >
-                            ⚠️ Cancelar
+                             Cancelar
                           </button>
                         </>
                       )}
@@ -474,7 +465,7 @@ const GestionAsignaciones = () => {
                         className="bg-red-600 hover:bg-red-700 text-white rounded-md py-2 px-3 text-sm transition"
                         title="Eliminar asignación"
                       >
-                        🗑️ Eliminar
+                         Eliminar
                       </button>
                     </div>
                   )}
@@ -484,7 +475,7 @@ const GestionAsignaciones = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Chofer */}
                   <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">👤 Chofer</p>
+                    <p className="text-gray-400 text-sm mb-1"> Chofer</p>
                     <p className="text-white font-semibold">{asignacion.chofer_completo}</p>
                     <p className="text-gray-300 text-sm">{asignacion.chofer_email}</p>
                   </div>
@@ -500,13 +491,13 @@ const GestionAsignaciones = () => {
 
                   {/* Ruta */}
                   <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">🗺️ Ruta</p>
+                    <p className="text-gray-400 text-sm mb-1"> Ruta</p>
                     <p className="text-white font-semibold">{asignacion.nombre_ruta}</p>
                   </div>
 
                   {/* Fechas */}
                   <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">📅 Fecha Inicio</p>
+                    <p className="text-gray-400 text-sm mb-1"> Fecha Inicio</p>
                     <p className="text-white font-semibold">
                       {new Date(asignacion.fecha_inicio).toLocaleDateString('es-ES')}
                     </p>
@@ -514,7 +505,7 @@ const GestionAsignaciones = () => {
 
                   {asignacion.fecha_fin && (
                     <div className="bg-slate-800/50 p-3 rounded-lg">
-                      <p className="text-gray-400 text-sm mb-1">📅 Fecha Fin</p>
+                      <p className="text-gray-400 text-sm mb-1"> Fecha Fin</p>
                       <p className="text-white font-semibold">
                         {new Date(asignacion.fecha_fin).toLocaleDateString('es-ES')}
                       </p>
@@ -524,7 +515,7 @@ const GestionAsignaciones = () => {
                   {/* Asignado por */}
                   {asignacion.admin_completo && (
                     <div className="bg-slate-800/50 p-3 rounded-lg">
-                      <p className="text-gray-400 text-sm mb-1">👨‍💼 Asignado por</p>
+                      <p className="text-gray-400 text-sm mb-1"> Asignado por</p>
                       <p className="text-white font-semibold">{asignacion.admin_completo}</p>
                     </div>
                   )}
@@ -533,7 +524,7 @@ const GestionAsignaciones = () => {
                 {/* Observaciones */}
                 {asignacion.observaciones && (
                   <div className="mt-4 bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">📝 Observaciones</p>
+                    <p className="text-gray-400 text-sm mb-1"> Observaciones</p>
                     <p className="text-gray-300">{asignacion.observaciones}</p>
                   </div>
                 )}

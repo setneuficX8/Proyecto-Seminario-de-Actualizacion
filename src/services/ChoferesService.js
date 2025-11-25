@@ -1,9 +1,6 @@
 import { supabase } from '../Supabase/Conection';
 
-/**
- * Crear un nuevo chofer usando Edge Function
- * El admin establece la contraseña inicial del chofer
- */
+
 export const crearChofer = async (choferData) => {
   try {
     // Validar que se incluya password
@@ -40,6 +37,7 @@ export const crearChofer = async (choferData) => {
         creado_por: admin.id
       }
     });
+    console.log('Funciona HDP:', data, error);
 
     if (error) {
       console.error('Error invocando Edge Function:', error);
@@ -61,7 +59,7 @@ export const crearChofer = async (choferData) => {
       chofer: data.chofer,
       message: data.message
     };
-consolo.log(('hdp',choferData));
+
   } 
   
   catch (error) {
@@ -80,6 +78,7 @@ export const obtenerChoferes = async () => {
       .from('vista_choferes_disponibles')
       .select('*')
       .order('id', { ascending: false });
+      console.log('choferes ',data);
 
     if (error) {
       console.error('Error obteniendo choferes:', error);
@@ -142,6 +141,7 @@ export const actualizarChofer = async (id, choferData) => {
       .eq('id', id)
       .select()
       .single();
+      console.log(data);
 
     if (error) {
       console.error('Error actualizando chofer:', error);

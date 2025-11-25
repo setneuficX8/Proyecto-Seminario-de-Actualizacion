@@ -117,7 +117,7 @@ const PerfilChofer = () => {
       {/* Información Personal */}
       <div className="bg-slate-800/70 border border-slate-700 rounded-lg p-6 shadow-lg mb-6">
         <h2 className="text-2xl font-semibold text-white mb-4 font-montserrat flex items-center gap-2">
-          👤 Información Personal
+           Información Personal
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -161,7 +161,7 @@ const PerfilChofer = () => {
       {asignacionActiva ? (
         <div className="bg-green-900/20 border border-green-500 rounded-lg p-6 shadow-lg">
           <h2 className="text-2xl font-semibold text-white mb-4 font-montserrat flex items-center gap-2">
-            🚗 Asignación Activa
+             Asignación Activa
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -178,7 +178,7 @@ const PerfilChofer = () => {
 
             {/* Ruta Asignada */}
             <div className="bg-slate-900/50 p-4 rounded-lg">
-              <p className="text-gray-400 text-sm mb-2">🗺️ Ruta</p>
+              <p className="text-gray-400 text-sm mb-2"> Ruta</p>
               <p className="text-white font-semibold">
                 {asignacionActiva.ruta?.nombre_ruta || 'Sin nombre'}
               </p>
@@ -186,7 +186,7 @@ const PerfilChofer = () => {
 
             {/* Estado de Asignación */}
             <div className="bg-slate-900/50 p-4 rounded-lg">
-              <p className="text-gray-400 text-sm mb-2">📅 Estado</p>
+              <p className="text-gray-400 text-sm mb-2"> Estado</p>
               <span className="inline-flex px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/50">
                 {asignacionActiva.estado}
               </span>
@@ -198,7 +198,7 @@ const PerfilChofer = () => {
 
           {asignacionActiva.observaciones && (
             <div className="bg-slate-900/50 p-4 rounded-lg">
-              <p className="text-gray-400 text-sm mb-1">📝 Observaciones</p>
+              <p className="text-gray-400 text-sm mb-1"> Observaciones</p>
               <p className="text-white">{asignacionActiva.observaciones}</p>
             </div>
           )}

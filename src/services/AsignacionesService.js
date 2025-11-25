@@ -1,15 +1,5 @@
 import { supabase } from '../Supabase/Conection';
 
-/**
- * ============================================
- * SERVICIO DE ASIGNACIONES
- * ============================================
- * Maneja el CRUD de asignaciones (Chofer + Vehículo + Ruta)
- */
-
-// ============================================
-// FUNCIONES AUXILIARES
-// ============================================
 
 /**
  * Obtener el usuario autenticado actual
@@ -45,18 +35,10 @@ const isUserAdmin = async () => {
     return { isAdmin: !!admin, adminId: admin?.id || null };
 };
 
-// ============================================
-// OPERACIONES CRUD
-// ============================================
 
-/**
- * Obtener todas las asignaciones
- * - Admin: ve todas
- * - Chofer: solo las suyas (filtrado automático por RLS)
- */
 export const getAsignaciones = async () => {
     try {
-        console.log('📖 Obteniendo asignaciones...');
+        console.log('Obteniendo asignaciones...');
         
         // Primero intentar sin los JOINs para ver si hay datos
         const { data, error } = await supabase
@@ -65,11 +47,11 @@ export const getAsignaciones = async () => {
             .order('created_at', { ascending: false });
         
         if (error) {
-            console.error('❌ Error al obtener asignaciones:', error);
+            console.error(' Error al obtener asignaciones:', error);
             throw error;
         }
         
-        console.log('✅ Asignaciones obtenidas (sin relaciones):', data?.length || 0);
+        console.log(' Asignaciones obtenidas (sin relaciones):', data?.length || 0);
         
         // Si hay datos, intentar cargar las relaciones por separado
         if (data && data.length > 0) {
@@ -146,7 +128,7 @@ export const getAsignaciones = async () => {
         return [];
         
     } catch (error) {
-        console.error("❌ Error en getAsignaciones:", error);
+        console.error(" Error en getAsignaciones:", error);
         throw error;
     }
 };
@@ -156,7 +138,7 @@ export const getAsignaciones = async () => {
  */
 export const getAsignacionesActivas = async () => {
     try {
-        console.log('📖 Obteniendo asignaciones activas...');
+        console.log(' Obteniendo asignaciones activas...');
         
         const { data, error } = await supabase
             .from('asignaciones')
@@ -171,7 +153,7 @@ export const getAsignacionesActivas = async () => {
             .order('created_at', { ascending: false });
         
         if (error) {
-            console.error('❌ Error al obtener asignaciones activas:', error);
+            console.error(' Error al obtener asignaciones activas:', error);
             throw error;
         }
         
@@ -207,11 +189,11 @@ export const getAsignacionesActivas = async () => {
             admin_completo: a.admin ? `${a.admin.nombre} ${a.admin.apellido}` : null
         })) || [];
         
-        console.log('✅ Asignaciones activas obtenidas:', asignacionesTransformadas.length);
+        console.log(' Asignaciones activas obtenidas:', asignacionesTransformadas.length);
         return asignacionesTransformadas;
         
     } catch (error) {
-        console.error("❌ Error en getAsignacionesActivas:", error);
+        console.error(" Error en getAsignacionesActivas:", error);
         throw error;
     }
 };
@@ -222,8 +204,8 @@ export const getAsignacionesActivas = async () => {
  */
 export const createAsignacion = async (asignacionData) => {
     try {
-        console.log('🚀 Iniciando creación de asignación...');
-        console.log('📦 Datos recibidos:', asignacionData);
+        console.log('Iniciando creación de asignación...');
+        console.log(' Datos recibidos:', asignacionData);
         
         // Verificar que el usuario es admin
         const { isAdmin, adminId } = await isUserAdmin();
@@ -244,7 +226,7 @@ export const createAsignacion = async (asignacionData) => {
             asignado_por: adminId
         };
         
-        console.log('💾 Insertando asignación:', dataParaInsertar);
+        console.log(' Insertando asignación:', dataParaInsertar);
         
         const { data: asignacion, error } = await supabase
             .from('asignaciones')
@@ -253,11 +235,11 @@ export const createAsignacion = async (asignacionData) => {
             .single();
         
         if (error) {
-            console.error('❌ Error al crear asignación:', error);
+            console.error(' Error al crear asignación:', error);
             throw error;
         }
         
-        console.log('✅ Asignación creada:', asignacion);
+        console.log(' Asignación creada:', asignacion);
         
         // Recargar la asignación con todos los datos relacionados
         const { data: asignacionCompleta } = await supabase
@@ -275,7 +257,7 @@ export const createAsignacion = async (asignacionData) => {
         return asignacionCompleta || asignacion;
         
     } catch (error) {
-        console.error("❌ Error al crear asignación:", error);
+        console.error(" Error al crear asignación:", error);
         throw error;
     }
 };
@@ -286,7 +268,7 @@ export const createAsignacion = async (asignacionData) => {
  */
 export const updateAsignacion = async (asignacionId, asignacionData) => {
     try {
-        console.log('🔄 Actualizando asignación:', asignacionId);
+        console.log(' Actualizando asignación:', asignacionId);
         
         // Verificar que el usuario es admin
         const { isAdmin } = await isUserAdmin();
@@ -303,15 +285,15 @@ export const updateAsignacion = async (asignacionId, asignacionData) => {
             .single();
         
         if (error) {
-            console.error('❌ Error al actualizar asignación:', error);
+            console.error(' Error al actualizar asignación:', error);
             throw error;
         }
         
-        console.log('✅ Asignación actualizada:', asignacion);
+        console.log(' Asignación actualizada:', asignacion);
         return asignacion;
         
     } catch (error) {
-        console.error("❌ Error al actualizar asignación:", error);
+        console.error(" Error al actualizar asignación:", error);
         throw error;
     }
 };
@@ -322,7 +304,7 @@ export const updateAsignacion = async (asignacionId, asignacionData) => {
  */
 export const cambiarEstadoAsignacion = async (asignacionId, nuevoEstado) => {
     try {
-        console.log('🔄 Cambiando estado de asignación:', asignacionId, 'a', nuevoEstado);
+        console.log(' Cambiando estado de asignación:', asignacionId, 'a', nuevoEstado);
         
         // Verificar que el usuario es admin
         const { isAdmin } = await isUserAdmin();
@@ -348,15 +330,15 @@ export const cambiarEstadoAsignacion = async (asignacionId, nuevoEstado) => {
             .single();
         
         if (error) {
-            console.error('❌ Error al cambiar estado:', error);
+            console.error(' Error al cambiar estado:', error);
             throw error;
         }
         
-        console.log('✅ Estado cambiado:', asignacion);
+        console.log(' Estado cambiado:', asignacion);
         return asignacion;
         
     } catch (error) {
-        console.error("❌ Error al cambiar estado:", error);
+        console.error(" Error al cambiar estado:", error);
         throw error;
     }
 };
@@ -367,7 +349,7 @@ export const cambiarEstadoAsignacion = async (asignacionId, nuevoEstado) => {
  */
 export const deleteAsignacion = async (asignacionId) => {
     try {
-        console.log('🗑️ Eliminando asignación:', asignacionId);
+        console.log(' Eliminando asignación:', asignacionId);
         
         // Verificar que el usuario es admin
         const { isAdmin } = await isUserAdmin();
@@ -382,22 +364,18 @@ export const deleteAsignacion = async (asignacionId) => {
             .eq('id', asignacionId);
         
         if (error) {
-            console.error('❌ Error al eliminar asignación:', error);
+            console.error(' Error al eliminar asignación:', error);
             throw error;
         }
         
-        console.log('✅ Asignación eliminada');
+        console.log('Asignación eliminada');
         return { success: true, message: 'Asignación eliminada correctamente' };
         
     } catch (error) {
-        console.error("❌ Error al eliminar asignación:", error);
+        console.error(" Error al eliminar asignación:", error);
         throw error;
     }
 };
-
-// ============================================
-// FUNCIONES AUXILIARES PARA FORMULARIOS
-// ============================================
 
 /**
  * Obtener choferes activos disponibles
@@ -421,7 +399,7 @@ export const getChoferesDisponibles = async () => {
         return choferesTransformados;
         
     } catch (error) {
-        console.error("❌ Error al obtener choferes disponibles:", error);
+        console.error(" Error al obtener choferes disponibles:", error);
         throw error;
     }
 };
@@ -450,14 +428,14 @@ export const getVehiculosDisponibles = async () => {
         return vehiculosTransformados;
         
     } catch (error) {
-        console.error("❌ Error al obtener vehículos disponibles:", error);
+        console.error(" Error al obtener vehículos disponibles:", error);
         throw error;
     }
 };
 
-/**
- * Obtener rutas activas
- */
+
+ // Obtener rutas activas
+ 
 export const getRutasActivas = async () => {
     try {
         const { data, error } = await supabase
@@ -471,7 +449,7 @@ export const getRutasActivas = async () => {
         return data || [];
         
     } catch (error) {
-        console.error("❌ Error al obtener rutas activas:", error);
+        console.error(" Error al obtener rutas activas:", error);
         throw error;
     }
 };

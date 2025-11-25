@@ -245,7 +245,7 @@ const GestionChoferes = () => {
           onClick={() => setMostrarFormulario(!mostrarFormulario)}
           className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md font-semibold flex items-center gap-2"
         >
-          {mostrarFormulario ? '❌ Cancelar' : '➕ Nuevo Chofer'}
+          {mostrarFormulario ? ' Cancelar' : ' Nuevo Chofer'}
         </button>
       </div>
 
@@ -255,7 +255,7 @@ const GestionChoferes = () => {
           editando ? 'border-yellow-500 bg-yellow-900/30' : 'border-sky-400 bg-slate-800/50'
         }`}>
           <h2 className="text-xl font-semibold mb-4 text-white font-montserrat">
-            {editando ? '✏️ Editar Chofer' : '➕ Nuevo Chofer'}
+            {editando ? ' Editar Chofer' : ' Nuevo Chofer'}
           </h2>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -369,7 +369,7 @@ const GestionChoferes = () => {
                     : 'bg-sky-600 hover:bg-sky-700'
                 } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
-                {loading ? 'Guardando...' : editando ? '💾 Actualizar' : '✅ Crear Chofer'}
+                {loading ? 'Guardando...' : editando ? '💾 Actualizar' : ' Crear Chofer'}
               </button>
 
               <button
@@ -425,7 +425,7 @@ const GestionChoferes = () => {
             disabled={loading}
             className="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-60"
           >
-            {loading ? 'Cargando...' : '🔄 Actualizar'}
+            {loading ? 'Cargando...' : ' Actualizar'}
           </button>
         </div>
 
@@ -448,7 +448,7 @@ const GestionChoferes = () => {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="text-xl font-semibold text-white mb-1">
-                      👤 {chofer.nombre} {chofer.apellido}
+                       {chofer.nombre} {chofer.apellido}
                     </h3>
                     <p className="text-gray-300">📧 {chofer.email}</p>
                   </div>
@@ -485,7 +485,7 @@ const GestionChoferes = () => {
                     disabled={loading}
                     className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    ✏️ Editar
+                     Editar
                   </button>
 
                   <button
@@ -493,7 +493,7 @@ const GestionChoferes = () => {
                     disabled={loading}
                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    🗑️ Eliminar
+                     Eliminar
                   </button>
                 </div>
               </div>

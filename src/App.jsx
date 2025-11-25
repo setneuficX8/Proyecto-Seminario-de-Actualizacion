@@ -9,6 +9,7 @@ const Mapa = lazy(() => import('./Mapbox/Mapa'));
 const GestionVehiculos = lazy(() => import('./components/GestionVehiculos'));
 const GestionAsignaciones = lazy(() => import('./components/GestionAsignaciones'));
 const GestionChoferes = lazy(() => import('./components/GestionChoferes'));
+const GestionRutas = lazy(() => import('./components/GestionRutas'));
 const PerfilChofer = lazy(() => import('./components/PerfilChofer'));
 const RegisterSupabase = lazy(() => import('./Supabase/RegisterSupabase'));
 const LoginSupabase = lazy(() => import('./Supabase/LoginSupabase'));
@@ -102,6 +103,15 @@ function AppContent() {
               </span>
             </Link>
             
+            <Link 
+              to="/gestion-rutas" 
+              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
+            >
+              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span>Gestión de Rutas</span>
+              </span>
+            </Link>
+            
             <Link
               to="/RegisterSupabase"
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
@@ -133,6 +143,7 @@ function AppContent() {
             <Route path="/gestion-vehiculos" element={<GestionVehiculos />} />
             <Route path="/gestion-asignaciones" element={<GestionAsignaciones />} />
             <Route path="/gestion-choferes" element={<GestionChoferes />} />
+            <Route path="/gestion-rutas" element={<GestionRutas />} />
             <Route path="/perfil-chofer" element={<PerfilChofer />} />
             <Route path="/RegisterSupabase" element={<RegisterSupabase />} />
             <Route path="/LoginSupabase" element={<LoginSupabase />} />

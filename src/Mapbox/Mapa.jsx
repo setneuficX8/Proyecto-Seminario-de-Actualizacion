@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl'
 import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions'
 import polyline from '@mapbox/polyline';
 import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css'
-import { createRuta } from '../API/RutasAPI'
+import { createRuta } from '../services/RutasService'
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './Mapa.css'
@@ -105,24 +105,22 @@ function Mapa() {
     try {
       setGuardando(true)
       const coordenadas = polyline.decode(rutaActual.geometry);
-      console.log("coordenadas", coordenadas);
-      console.log(rutaActual)
-
-      // Esto es para xtraer las coordenadas de la geometría de la ruta
-      const coordinates = rutaActual.geometry.coordinates
+      console.log("Coordenadas decodificadas:", coordenadas);
+      console.log("Ruta actual:", rutaActual)
 
       const dataRuta = {
         nombre_ruta: nombreRuta,
         coordinates: coordenadas
       }
 
+      // Usar RutasService que maneja tanto API externa como Supabase
       await createRuta(dataRuta)
       
-      alert('Ruta guardada exitosamente')
+      alert('Ruta guardada exitosamente en Supabase y API externa')
       setNombreRuta('')
       setRutaActual(null)
       
-      // Para limpiar la ruta del mapa
+      // Limpiar la ruta del mapa
       if (directionsRef.current) {
         directionsRef.current.removeRoutes()
       }
