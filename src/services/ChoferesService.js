@@ -73,19 +73,43 @@ export const crearChofer = async (choferData) => {
  */
 export const obtenerChoferes = async () => {
   try {
-    // Consultar vista que incluye disponibilidad basada en asignaciones activas
-    const { data, error } = await supabase
-      .from('vista_choferes_disponibles')
+    // Obtener TODOS los choferes (activos e inactivos) desde la tabla principal
+    const { data: choferes, error } = await supabase
+      .from('Chofer')
       .select('*')
       .order('id', { ascending: false });
-      console.log('choferes ',data);
 
     if (error) {
       console.error('Error obteniendo choferes:', error);
       throw error;
     }
 
-    return data || [];
+    if (!choferes || choferes.length === 0) {
+      return [];
+    }
+
+    // Para cada chofer, verificar si tiene asignaciones activas para determinar disponibilidad
+    const choferesConDisponibilidad = await Promise.all(
+      choferes.map(async (chofer) => {
+        // Buscar asignaciones activas
+        const { data: asignacionActiva } = await supabase
+          .from('asignaciones')
+          .select('id')
+          .eq('chofer_id', chofer.id)
+          .eq('estado', 'activa')
+          .maybeSingle();
+
+        return {
+          ...chofer,
+          nombre_completo: `${chofer.nombre} ${chofer.apellido}`,
+          disponible: !asignacionActiva // Disponible si NO tiene asignación activa
+        };
+      })
+    );
+
+    console.log('choferes ', choferesConDisponibilidad);
+
+    return choferesConDisponibilidad;
 
   } catch (error) {
     console.error('Error en obtenerChoferes:', error);
@@ -201,6 +225,8 @@ export const obtenerChoferesActivos = async () => {
     throw new Error(error.message || 'Error al obtener choferes activos');
   }
 };
+
+
 
 /**
  * Obtener choferes disponibles (sin asignación activa)

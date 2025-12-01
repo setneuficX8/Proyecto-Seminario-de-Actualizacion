@@ -265,7 +265,7 @@ const GestionRutas = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-slate-800/50 divide-y divide-gray-700">
                 {rutasFiltradas.map((ruta) => (
                   <tr key={ruta.id} className="hover:bg-slate-700/50 transition-colors">
                     {editando && editando.id === ruta.id ? (
