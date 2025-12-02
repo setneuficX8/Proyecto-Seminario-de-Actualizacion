@@ -1,12 +1,15 @@
 import React from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import useAuth from '../hooks/useAuth';
 import { supabase } from "./Conection";
 
 function LoginSupabase(){
+    const { role } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [loginError, setLoginError] = useState(null);
 
     const handleSubmit = async (e) =>{
         e.preventDefault();
@@ -15,9 +18,24 @@ function LoginSupabase(){
                 email,
                 password
             })
+            // Si hay un error en la respuesta, mostrar mensaje inline encima de los campos
+            if(res?.error){
+                // Mensajes comunes en Supabase para credenciales inválidas
+                const msg = res.error.message || 'Error al iniciar sesión';
+                if(msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('incorrect')){
+                    setLoginError('Correo o contraseña incorrectos');
+                } else {
+                    setLoginError(msg);
+                }
+                // Ocultar después de unos segundos
+                setTimeout(() => setLoginError(null), 4500);
+                return;
+            }
             console.log(res);
         } catch (error){
             console.error('Error al iniciar sesion:', error);
+            setLoginError('Error al iniciar sesión');
+            setTimeout(() => setLoginError(null), 4500);
         }
     }
 
@@ -32,6 +50,23 @@ function LoginSupabase(){
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+                    {loginError && (
+                        <div className="mb-2">
+                            <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                                <strong className="font-semibold">Error: </strong>
+                                <span className="ml-1">{loginError}</span>
+                                <button
+                                    onClick={() => setLoginError(null)}
+                                    className="absolute top-1/2 right-3 -translate-y-1/2 text-red-700 hover:text-red-900"
+                                    aria-label="Cerrar alerta"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
                             Correo Electrónico
@@ -91,9 +126,11 @@ function LoginSupabase(){
                 <div className="mt-6 text-center">
                     <p className="text-gray-400 text-sm">
                         ¿No tienes una cuenta?{' '}
+                        {role !== 'chofer' && (
                         <Link to="/RegisterSupabase" className="text-sky-400 hover:text-sky-300 font-semibold transition duration-200">
                             Registrarse
                         </Link>
+                        )}
                     </p>
                 </div>
             </div>

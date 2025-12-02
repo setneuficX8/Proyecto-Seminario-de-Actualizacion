@@ -157,10 +157,12 @@ const GestionRutas = () => {
 
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4 text-white">Acceso Denegado</h2>
-          <p className="text-gray-300">No tienes permisos para acceder a esta sección.</p>
+      <div className="p-5 max-w-4xl mx-auto">
+        <div className="bg-red-900/30 border border-red-500 rounded-lg p-6 text-center">
+          <h2 className="text-2xl font-bold text-red-400 mb-2">Acceso Denegado</h2>
+          <p className="text-gray-300">
+            No tienes permisos para acceder a esta sección. Por favor, contacta al administrador.
+          </p>
         </div>
       </div>
     );

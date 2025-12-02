@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-do
 import { lazy, Suspense } from 'react'
 import { useEffect } from 'react';
 import { supabase } from './Supabase/Conection';
+import useAuth from './hooks/useAuth';
+import RoleRoute from './components/RoleRoute';
 //import PrivateRoute from './components/PrivateRoute';
 
 // Utilizando lazy loading para los componentes
@@ -45,6 +47,8 @@ function AppContent() {
     };
   }, [navigate]);
 
+  const { role, loading } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 font-poppins">
       {/* Header de Bienvenida */}
@@ -62,8 +66,8 @@ function AppContent() {
               to="/" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span>Inicio</span>
+              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span className="truncate">Inicio</span>
               </span>
             </Link>
             
@@ -71,8 +75,8 @@ function AppContent() {
               to="/mapa" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span>Mapa de Rutas</span>
+              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span className="truncate">Mapa de Rutas</span>
               </span>
             </Link>
             
@@ -80,8 +84,8 @@ function AppContent() {
               to="/gestion-vehiculos" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span>Gestión de Vehículos</span>
+              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span className="truncate">Gestión de Vehículos</span>
               </span>
             </Link>
             
@@ -89,37 +93,43 @@ function AppContent() {
               to="/gestion-asignaciones" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span>Asignaciones</span>
+              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span className="truncate">Asignaciones</span>
               </span>
             </Link>
             
+            {role !== 'chofer' && (
             <Link 
               to="/gestion-choferes" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span>Gestión de Choferes</span>
+              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span className="truncate">Gestión de Choferes</span>
               </span>
             </Link>
+            )}
             
+            {role !== 'chofer' && (
             <Link 
               to="/gestion-rutas" 
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span>Gestión de Rutas</span>
+              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span className="truncate">Gestión de Rutas</span>
               </span>
             </Link>
+            )}
             
+            {role !== 'chofer' && (
             <Link
               to="/RegisterSupabase"
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
-              <span className="flex items-center space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span>Registro</span>
+              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
+                <span className="truncate">Registro</span>
               </span>
             </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -142,10 +152,22 @@ function AppContent() {
             <Route path="/mapa" element={<Mapa />} />
             <Route path="/gestion-vehiculos" element={<GestionVehiculos />} />
             <Route path="/gestion-asignaciones" element={<GestionAsignaciones />} />
-            <Route path="/gestion-choferes" element={<GestionChoferes />} />
-            <Route path="/gestion-rutas" element={<GestionRutas />} />
+            <Route path="/gestion-choferes" element={
+              <RoleRoute blockedRoles={["chofer"]}>
+                <GestionChoferes />
+              </RoleRoute>
+            } />
+            <Route path="/gestion-rutas" element={
+              <RoleRoute blockedRoles={["chofer"]}>
+                <GestionRutas />
+              </RoleRoute>
+            } />
             <Route path="/perfil-chofer" element={<PerfilChofer />} />
-            <Route path="/RegisterSupabase" element={<RegisterSupabase />} />
+            <Route path="/RegisterSupabase" element={
+              <RoleRoute blockedRoles={["chofer"]}>
+                <RegisterSupabase />
+              </RoleRoute>
+            } />
             <Route path="/LoginSupabase" element={<LoginSupabase />} />
           </Routes>
         </Suspense>

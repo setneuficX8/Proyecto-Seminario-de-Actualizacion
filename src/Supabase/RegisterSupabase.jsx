@@ -1,10 +1,12 @@
 import React from 'react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import useAuth from '../hooks/useAuth';
 import { supabase } from './Conection';
 import Swal from 'sweetalert2';
 
 function RegisterSupabase() {
+    const { role, loading } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [Firstname, setFirstname] = useState('');
@@ -65,11 +67,25 @@ function RegisterSupabase() {
     }
 
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-sky-400" />
+            </div>
+        );
+    }
+
+    // Si el usuario está autenticado y es chofer, bloquear acceso
+    if (role === 'chofer') {
+        return <Navigate to="/" replace />;
+    }
+
     return (
         <div className="max-w-md mx-auto p-5">
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg p-8 border-t-4 border-sky-400">
                 <h2 className="text-3xl font-bold text-white mb-2 text-center font-montserrat">
                     Crear Cuenta
+                    (Administrador)
                 </h2>
                 <p className="text-gray-300 text-center mb-6">
                     Registra tu cuenta para acceder al sistema
