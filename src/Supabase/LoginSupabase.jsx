@@ -122,17 +122,6 @@ function LoginSupabase(){
                         Iniciar Sesión
                     </button>
                 </form>
-
-                <div className="mt-6 text-center">
-                    <p className="text-gray-400 text-sm">
-                        ¿No tienes una cuenta?{' '}
-                        {role !== 'chofer' && (
-                        <Link to="/RegisterSupabase" className="text-sky-400 hover:text-sky-300 font-semibold transition duration-200">
-                            Registrarse
-                        </Link>
-                        )}
-                    </p>
-                </div>
             </div>
         </div>
     )

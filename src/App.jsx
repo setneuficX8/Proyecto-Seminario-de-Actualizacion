@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useEffect } from 'react';
 import { supabase } from './Supabase/Conection';
 import useAuth from './hooks/useAuth';
@@ -47,7 +47,8 @@ function AppContent() {
     };
   }, [navigate]);
 
-  const { role, loading } = useAuth();
+  const { user, role, loading } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 font-poppins">
@@ -58,12 +59,35 @@ function AppContent() {
         </h1>
       </div>
 
-      {/* Navegación */}
+      {/* Navegación (solo visible cuando hay sesión iniciada) */}
+      { !loading && user && (
       <nav className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md text-white shadow-md border-t-4 border-sky-400">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-8 py-4">
+          {/* Top row: brand + hamburger (mobile) */}
+          <div className="flex items-center justify-between py-3 md:hidden">
+            <div className="text-white font-semibold text-lg">Menu</div>
+            <button
+              aria-label="Toggle navigation menu"
+              onClick={() => setIsMenuOpen(prev => !prev)}
+              className="text-white focus:outline-none p-2 rounded-md hover:bg-white/5"
+            >
+              {/* Hamburger icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Links: visible on md and up, or on mobile if menu open */}
+          <div className={`${isMenuOpen ? 'block' : 'hidden'} md:block`}>
+            <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-8 py-4">
             <Link 
               to="/" 
+              onClick={() => setIsMenuOpen(false)}
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
               <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -73,6 +97,7 @@ function AppContent() {
             
             <Link 
               to="/mapa" 
+              onClick={() => setIsMenuOpen(false)}
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
               <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -82,6 +107,7 @@ function AppContent() {
             
             <Link 
               to="/gestion-vehiculos" 
+              onClick={() => setIsMenuOpen(false)}
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
               <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -91,6 +117,7 @@ function AppContent() {
             
             <Link 
               to="/gestion-asignaciones" 
+              onClick={() => setIsMenuOpen(false)}
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
               <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -101,6 +128,7 @@ function AppContent() {
             {role !== 'chofer' && (
             <Link 
               to="/gestion-choferes" 
+              onClick={() => setIsMenuOpen(false)}
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
               <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -112,6 +140,7 @@ function AppContent() {
             {role !== 'chofer' && (
             <Link 
               to="/gestion-rutas" 
+              onClick={() => setIsMenuOpen(false)}
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
               <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -123,6 +152,7 @@ function AppContent() {
             {role !== 'chofer' && (
             <Link
               to="/RegisterSupabase"
+              onClick={() => setIsMenuOpen(false)}
               className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
             >
               <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -130,9 +160,11 @@ function AppContent() {
               </span>
             </Link>
             )}
+            </div>
           </div>
         </div>
       </nav>
+      )}
 
       {/* Contenido Principal */}
       <main className="max-w-7xl mx-auto px-4 py-8">
