@@ -32,9 +32,11 @@ function Mapa() {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-77.03116, 3.8801],
+        center: [-77.0312, 3.8801],
         zoom: 10.12
       })
+      console.log("Mapa inicializado:", mapRef.current.getCenter())
+    
 
       // Inicializar el control de direcciones
       directionsRef.current = new MapboxDirections({
@@ -78,6 +80,7 @@ function Mapa() {
       setError(`Error al inicializar el mapa: ${err.message}`)
       setIsLoading(false)
     }
+   
 
     return () => {
       if (directionsRef.current) {
@@ -104,16 +107,19 @@ function Mapa() {
 
     try {
       setGuardando(true)
+      
+      
       const coordenadas = polyline.decode(rutaActual.geometry);
-      console.log("Coordenadas decodificadas:", coordenadas);
+      console.log("Coordenadas HDP ", coordenadas.slice(0, 3));
+      const Coordenadas = coordenadas.map(([lat, lng]) => [lng, lat]);
+      console.log("Coordenadas en formato GeoJSON (lng, lat):", Coordenadas.slice(0, 3));
       console.log("Ruta actual:", rutaActual)
 
       const dataRuta = {
         nombre_ruta: nombreRuta,
-        coordinates: coordenadas
+        coordinates: Coordenadas
       }
 
-      // Usar RutasService que maneja tanto API externa como Supabase
       await createRuta(dataRuta)
       
       alert('Ruta guardada exitosamente en Supabase y API externa')
