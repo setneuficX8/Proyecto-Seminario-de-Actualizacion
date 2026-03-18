@@ -171,27 +171,37 @@ export const createVehiculo = async (vehiculoData) => {
         
         // 2. Crear vehículo en la API externa CON perfil_id
         console.log(' Creando en API externa...');
+        const apiPayload = {
+            perfil_id: PERFIL_ID,
+            placa: vehiculoData.placa,
+            marca: vehiculoData.marca || null,
+            modelo: vehiculoData.modelo || null,
+        };
+
         const apiResponse = await fetch(`${API_BASE}/vehiculos`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',  // ← AGREGAR ESTO
             },
-            body: JSON.stringify({
-                perfil_id: PERFIL_ID,
-                placa: vehiculoData.placa,
-                marca: vehiculoData.marca || null,
-                modelo: vehiculoData.modelo || null,
-            })
+            body: JSON.stringify(apiPayload),
         });
 
+        console.log('Status de la API:', apiResponse.status);
+
         if (!apiResponse.ok) {
-            const errorText = await apiResponse.text();
-            console.error(' Error en API externa:', errorText);
-            throw new Error('Error al crear vehículo en API externa: ' + errorText);
+            // Ahora sí verás el error real de la API en JSON
+            const errorData = await apiResponse.json();
+            console.error('Error de la API:', errorData);
+            throw new Error(
+                errorData.message || 
+                JSON.stringify(errorData.errors) || 
+                'Error al crear vehículo en API externa'
+            );
         }
 
         const vehiculoApi = await apiResponse.json();
-        console.log(' Vehículo creado en API:', vehiculoApi);
+        console.log('Vehículo creado en API:', vehiculoApi);
         
         // 3. Guardar en Supabase con el ID de la API y creado_por
         console.log(' Guardando en Supabase con vehiculo_id_api:', vehiculoApi.id);
