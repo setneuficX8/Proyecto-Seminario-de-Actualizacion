@@ -11,5 +11,6 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis' // Polyfill para compatibilidad con dependencias de Node.js que esperan la variable 'global'
-  }
+  },
+  base:"https://setneuficx8.github.io/Proyecto-Seminario-de-Actualizacion/"
 })
