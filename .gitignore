@@ -2,8 +2,8 @@
 node_modules/
 
 # Salidas de compilación
-dist/
 build/
+dist/
 
 # Archivos de entorno
 .env

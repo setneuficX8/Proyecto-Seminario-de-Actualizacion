@@ -3,13 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepge":"https://setneuficx8.github.io/Proyecto-Seminario-de-Actualizacion/",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "vite build",
+    "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {

@@ -227,7 +227,7 @@ function Footer(){
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename='https://setneuficx8.github.io/Proyecto-Seminario-de-Actualizacion/'>
       <AppContent />
       <Footer />
     </BrowserRouter>
