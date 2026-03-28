@@ -1,6 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import {getAsignaciones,getAsignacionesActivas,createAsignacion,cambiarEstadoAsignacion,deleteAsignacion,getChoferesDisponibles,getVehiculosDisponibles,getRutasActivas} from '../services/AsignacionesService';
+import {getAsignaciones,getAsignacionesActivas,createAsignacion,cambiarEstadoAsignacion,deleteAsignacion,getChoferesDisponibles,getVehiculosDisponibles,getRutasActivas,verificarConflictoHorarioRuta} from '../services/AsignacionesService';
+
+// Constantes para días de la semana
+const DIAS_SEMANA = [
+  { id: 0, nombre: 'Dom', nombreCompleto: 'Domingo' },
+  { id: 1, nombre: 'Lun', nombreCompleto: 'Lunes' },
+  { id: 2, nombre: 'Mar', nombreCompleto: 'Martes' },
+  { id: 3, nombre: 'Mié', nombreCompleto: 'Miércoles' },
+  { id: 4, nombre: 'Jue', nombreCompleto: 'Jueves' },
+  { id: 5, nombre: 'Vie', nombreCompleto: 'Viernes' },
+  { id: 6, nombre: 'Sáb', nombreCompleto: 'Sábado' }
+];
+
+// Función auxiliar para formatear horario de forma legible
+const formatearHorario = (diasSemana, horaInicio, horaFin) => {
+  if (!diasSemana || diasSemana.length === 0) {
+    return 'Sin horario definido';
+  }
+  
+  const diasOrdenados = [...diasSemana].sort((a, b) => a - b);
+  const nombresDias = diasOrdenados.map(d => DIAS_SEMANA.find(dia => dia.id === d)?.nombre || '').join(', ');
+  
+  const formatoHora = (hora) => {
+    if (!hora) return '--:--';
+    return hora.substring(0, 5); // Mostrar solo HH:MM
+  };
+  
+  return `${nombresDias} · ${formatoHora(horaInicio)}–${formatoHora(horaFin)}`;
+};
 
 const GestionAsignaciones = () => {
   const { isAdmin, isChofer, loading: authLoading, userData } = useAuth();
@@ -17,7 +45,9 @@ const GestionAsignaciones = () => {
     vehiculo_id: '',
     ruta_id: '',
     fecha_inicio: new Date().toISOString().split('T')[0],
-    fecha_fin: '',
+    dias_semana: [],
+    hora_inicio: '08:00',
+    hora_fin: '14:00',
     observaciones: ''
   });
 
@@ -73,18 +103,59 @@ const GestionAsignaciones = () => {
     });
   };
 
+  // Manejar cambio en checkboxes de días
+  const handleDiaChange = (diaId) => {
+    const diasActuales = formData.dias_semana || [];
+    const nuevosDias = diasActuales.includes(diaId)
+      ? diasActuales.filter(d => d !== diaId)
+      : [...diasActuales, diaId].sort((a, b) => a - b);
+    
+    setFormData({
+      ...formData,
+      dias_semana: nuevosDias
+    });
+  };
+
+  // Seleccionar Lunes a Viernes rápidamente
+  const seleccionarLunesViernes = () => {
+    setFormData({
+      ...formData,
+      dias_semana: [1, 2, 3, 4, 5]
+    });
+  };
+
+  // Limpiar selección de días
+  const limpiarDias = () => {
+    setFormData({
+      ...formData,
+      dias_semana: []
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     
     try {
+      // Validar que se hayan seleccionado días
+      if (!formData.dias_semana || formData.dias_semana.length === 0) {
+        throw new Error('Debes seleccionar al menos un día de la semana');
+      }
+      
+      // Validar que hora_fin sea mayor que hora_inicio
+      if (formData.hora_inicio >= formData.hora_fin) {
+        throw new Error('La hora de fin debe ser posterior a la hora de inicio');
+      }
+      
       await createAsignacion({
         chofer_id: parseInt(formData.chofer_id),
         vehiculo_id: formData.vehiculo_id,
         ruta_id: parseInt(formData.ruta_id),
         fecha_inicio: formData.fecha_inicio,
-        fecha_fin: formData.fecha_fin || null,
+        dias_semana: formData.dias_semana,
+        hora_inicio: formData.hora_inicio,
+        hora_fin: formData.hora_fin,
         observaciones: formData.observaciones
       });
       
@@ -94,7 +165,9 @@ const GestionAsignaciones = () => {
         vehiculo_id: '',
         ruta_id: '',
         fecha_inicio: new Date().toISOString().split('T')[0],
-        fecha_fin: '',
+        dias_semana: [],
+        hora_inicio: '08:00',
+        hora_fin: '14:00',
         observaciones: ''
       });
       setMostrarFormulario(false);
@@ -260,10 +333,10 @@ const GestionAsignaciones = () => {
                 </select>
               </div>
 
-              {/* Fecha de inicio */}
+              {/* Vigente desde */}
               <div>
                 <label className="block text-gray-300 font-medium mb-2">
-                  Fecha de Inicio <span className="text-red-400">*</span>
+                  Vigente desde <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="date"
@@ -273,39 +346,109 @@ const GestionAsignaciones = () => {
                   required
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
                 />
-              </div>
-
-              {/* Fecha de fin (opcional) */}
-              <div>
-                <label className="block text-gray-300 font-medium mb-2">
-                  Fecha de Fin (opcional)
-                </label>
-                <input
-                  type="date"
-                  name="fecha_fin"
-                  value={formData.fecha_fin}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
-                />
-              </div>
-
-              {/* Observaciones */}
-              <div className="md:col-span-2">
-                <label className="block text-gray-300 font-medium mb-2">
-                  Observaciones
-                </label>
-                <textarea
-                  name="observaciones"
-                  value={formData.observaciones}
-                  onChange={handleInputChange}
-                  rows="3"
-                  placeholder="Notas adicionales sobre esta asignación..."
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white placeholder-gray-400"
-                ></textarea>
+                <p className="text-gray-400 text-xs mt-1">Fecha desde la cual aplica esta asignación</p>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            {/* Sección de Horarios */}
+            <div className="mt-6 p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+              <h3 className="text-lg font-semibold text-white mb-4">📅 Horario de la Asignación</h3>
+              
+              {/* Días de la semana */}
+              <div className="mb-4">
+                <label className="block text-gray-300 font-medium mb-3">
+                  Días de la semana <span className="text-red-400">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {DIAS_SEMANA.map(dia => (
+                    <button
+                      key={dia.id}
+                      type="button"
+                      onClick={() => handleDiaChange(dia.id)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                        formData.dias_semana.includes(dia.id)
+                          ? 'bg-sky-600 text-white shadow-lg ring-2 ring-sky-400'
+                          : 'bg-slate-600 text-gray-300 hover:bg-slate-500'
+                      }`}
+                    >
+                      {dia.nombre}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={seleccionarLunesViernes}
+                    className="text-sm px-3 py-1 bg-green-600/30 text-green-400 rounded hover:bg-green-600/50 transition"
+                  >
+                    Lun-Vie
+                  </button>
+                  <button
+                    type="button"
+                    onClick={limpiarDias}
+                    className="text-sm px-3 py-1 bg-red-600/30 text-red-400 rounded hover:bg-red-600/50 transition"
+                  >
+                    Limpiar
+                  </button>
+                </div>
+              </div>
+
+              {/* Horas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-300 font-medium mb-2">
+                    Hora de inicio <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    name="hora_inicio"
+                    value={formData.hora_inicio}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-300 font-medium mb-2">
+                    Hora de fin <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    name="hora_fin"
+                    value={formData.hora_fin}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Preview del horario */}
+              {formData.dias_semana.length > 0 && (
+                <div className="mt-4 p-3 bg-sky-900/30 border border-sky-500/50 rounded-lg">
+                  <p className="text-sky-300 text-sm">
+                    <span className="font-semibold">Vista previa:</span> {formatearHorario(formData.dias_semana, formData.hora_inicio, formData.hora_fin)}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Observaciones */}
+            <div className="mt-4">
+              <label className="block text-gray-300 font-medium mb-2">
+                Observaciones
+              </label>
+              <textarea
+                name="observaciones"
+                value={formData.observaciones}
+                onChange={handleInputChange}
+                rows="3"
+                placeholder="Notas adicionales sobre esta asignación..."
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white placeholder-gray-400"
+              ></textarea>
+            </div>
+
+            <div className="flex gap-3 mt-6">
               <button
                 type="submit"
                 disabled={loading}
@@ -475,7 +618,7 @@ const GestionAsignaciones = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Chofer */}
                   <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1"> Chofer</p>
+                    <p className="text-gray-400 text-sm mb-1">👤 Chofer</p>
                     <p className="text-white font-semibold">{asignacion.chofer_completo}</p>
                     <p className="text-gray-300 text-sm">{asignacion.chofer_email}</p>
                   </div>
@@ -484,38 +627,39 @@ const GestionAsignaciones = () => {
                   <div className="bg-slate-800/50 p-3 rounded-lg">
                     <p className="text-gray-400 text-sm mb-1">🚗 Vehículo</p>
                     <p className="text-white font-semibold">{asignacion.vehiculo_completo}</p>
-                    <p className={`text-sm ${asignacion.vehiculo_disponible ? 'text-red-400' : 'text-green-400'}`}>
+                    <p className={`text-sm ${asignacion.vehiculo_disponible ? 'text-green-400' : 'text-yellow-400'}`}>
                       {asignacion.vehiculo_disponible ? 'Disponible' : 'En uso'}
                     </p>
                   </div>
 
                   {/* Ruta */}
                   <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1"> Ruta</p>
+                    <p className="text-gray-400 text-sm mb-1">🛣️ Ruta</p>
                     <p className="text-white font-semibold">{asignacion.nombre_ruta}</p>
                   </div>
 
-                  {/* Fechas */}
+                  {/* Horario */}
                   <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1"> Fecha Inicio</p>
+                    <p className="text-gray-400 text-sm mb-1">📅 Horario</p>
+                    <p className="text-white font-semibold">
+                      {asignacion.dias_semana && asignacion.dias_semana.length > 0
+                        ? formatearHorario(asignacion.dias_semana, asignacion.hora_inicio, asignacion.hora_fin)
+                        : 'Sin horario definido'}
+                    </p>
+                  </div>
+
+                  {/* Vigente desde */}
+                  <div className="bg-slate-800/50 p-3 rounded-lg">
+                    <p className="text-gray-400 text-sm mb-1">📆 Vigente desde</p>
                     <p className="text-white font-semibold">
                       {new Date(asignacion.fecha_inicio).toLocaleDateString('es-ES')}
                     </p>
                   </div>
 
-                  {asignacion.fecha_fin && (
-                    <div className="bg-slate-800/50 p-3 rounded-lg">
-                      <p className="text-gray-400 text-sm mb-1"> Fecha Fin</p>
-                      <p className="text-white font-semibold">
-                        {new Date(asignacion.fecha_fin).toLocaleDateString('es-ES')}
-                      </p>
-                    </div>
-                  )}
-
                   {/* Asignado por */}
                   {asignacion.admin_completo && (
                     <div className="bg-slate-800/50 p-3 rounded-lg">
-                      <p className="text-gray-400 text-sm mb-1"> Asignado por</p>
+                      <p className="text-gray-400 text-sm mb-1">👨‍💼 Asignado por</p>
                       <p className="text-white font-semibold">{asignacion.admin_completo}</p>
                     </div>
                   )}
@@ -524,7 +668,7 @@ const GestionAsignaciones = () => {
                 {/* Observaciones */}
                 {asignacion.observaciones && (
                   <div className="mt-4 bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1"> Observaciones</p>
+                    <p className="text-gray-400 text-sm mb-1">📝 Observaciones</p>
                     <p className="text-gray-300">{asignacion.observaciones}</p>
                   </div>
                 )}
