@@ -12,9 +12,13 @@ function RegisterSupabase() {
     const [Firstname, setFirstname] = useState('');
     const [Lastname, setLastname] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
         try {
             // 1. Registrar usuario en Authentication
             const { data, error } = await supabase.auth.signUp({
@@ -32,10 +36,13 @@ function RegisterSupabase() {
 
             if (error) {
                 console.error('Error al registrar:', error);
+                const isRateLimitError = error.status === 429 || /rate limit/i.test(error.message || '');
                 Swal.fire({
                     icon: 'error',
                     title: 'Error al registrar',
-                    text: error.message,
+                    text: isRateLimitError
+                        ? 'Se alcanzó el límite de intentos de registro. Espera unos minutos antes de volver a intentar.'
+                        : error.message,
                     confirmButtonColor: '#0ea5e9'
                 });
                 return;
@@ -57,12 +64,17 @@ function RegisterSupabase() {
 
         } catch (error) {
             console.error('Error inesperado:', error);
+            const isRateLimitError = error?.status === 429 || /rate limit/i.test(error?.message || '');
             Swal.fire({
                 icon: 'error',
-                title: 'Error inesperado',
-                text: 'Ocurrió un error inesperado. Intenta de nuevo.',
+                title: isRateLimitError ? 'Demasiados intentos' : 'Error inesperado',
+                text: isRateLimitError
+                    ? 'Se alcanzó el límite de intentos de registro. Espera unos minutos antes de volver a intentar.'
+                    : 'Ocurrió un error inesperado. Intenta de nuevo.',
                 confirmButtonColor: '#0ea5e9'
             });
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -177,9 +189,10 @@ function RegisterSupabase() {
                     {/* Botón de registro */}
                     <button
                         type="submit"
+                        disabled={isSubmitting}
                         className="w-full py-3 px-4 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-montserrat"
                     >
-                        Registrarse
+                        {isSubmitting ? 'Registrando...' : 'Registrarse'}
                     </button>
                 </form>
 

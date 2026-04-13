@@ -27,7 +27,7 @@ function Mapa() {
     }
 
     try {
-      mapboxgl.accessToken = 'pk.eyJ1IjoiZmVybmFuZG96MjIiLCJhIjoiY21nZDN4MmMwMDBpZjJxcTFkOG8wZng1aCJ9.1MwuOu0F6-9rzHfZBs-4rw'
+      mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
       
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,

@@ -1,7 +1,7 @@
 import { supabase } from '../Supabase/Conection';
 
-const API_BASE = "https://apirecoleccion.gonzaloandreslucio.com/api";
-const PERFIL_ID = "50dad3d9-66ea-42a1-a06f-c502606d638f";
+const API_BASE = import.meta.env.VITE_API_BASE;
+const PERFIL_ID = import.meta.env.VITE_PERFIL_ID;
 
 
 
@@ -87,59 +87,57 @@ export const getVehiculos = async () => {
             return [];
         }
         
-        // Para cada vehículo, cargar información de asignación activa
-        const vehiculosConInfo = await Promise.all(
-            data.map(async (vehiculo) => {
-                // Buscar asignación activa
-                const { data: asignacionActiva } = await supabase
-                    .from('asignaciones')
-                    .select(`
-                        id,
-                        fecha_inicio,
-                        fecha_fin,
-                        estado,
-                        chofer_id,
-                        ruta_id
-                    `)
-                    .eq('vehiculo_id', vehiculo.id)
-                    .eq('estado', 'activa')
-                    .maybeSingle();
-                
-                // Si hay asignación activa, cargar chofer y ruta
-                let choferNombre = 'Sin asignar';
-                let nombreRuta = null;
-                
-                if (asignacionActiva) {
-                    // Cargar chofer
-                    const { data: choferData } = await supabase
-                        .from('Chofer')
-                        .select('nombre, apellido')
-                        .eq('id', asignacionActiva.chofer_id)
-                        .maybeSingle();
-                    
-                    if (choferData) {
-                        choferNombre = `${choferData.nombre} ${choferData.apellido}`;
-                    }
-                    
-                    // Cargar ruta
-                    const { data: rutaData } = await supabase
-                        .from('Rutas')
-                        .select('nombre_ruta')
-                        .eq('id', asignacionActiva.ruta_id)
-                        .maybeSingle();
-                    
-                    nombreRuta = rutaData?.nombre_ruta;
+        // Evitar patrón N+1: traer asignaciones activas (con chofer/ruta) en una sola consulta
+        const vehiculoIds = data.map(v => v.id).filter(Boolean);
+        let asignacionesPorVehiculo = new Map();
+
+        if (vehiculoIds.length > 0) {
+            const { data: asignacionesActivas, error: errorAsignaciones } = await supabase
+                .from('asignaciones')
+                .select(`
+                    id,
+                    vehiculo_id,
+                    fecha_inicio,
+                    fecha_fin,
+                    estado,
+                    chofer_id,
+                    ruta_id,
+                    chofer:Chofer(nombre, apellido),
+                    ruta:Rutas(nombre_ruta)
+                `)
+                .eq('estado', 'activa')
+                .in('vehiculo_id', vehiculoIds)
+                .order('created_at', { ascending: false });
+
+            if (errorAsignaciones) {
+                console.error(' Error al obtener asignaciones activas:', errorAsignaciones);
+                throw errorAsignaciones;
+            }
+
+            // Si por datos históricos hay más de una activa por vehículo, mantener la más reciente
+            asignacionesPorVehiculo = new Map();
+            for (const asignacion of (asignacionesActivas || [])) {
+                if (!asignacionesPorVehiculo.has(asignacion.vehiculo_id)) {
+                    asignacionesPorVehiculo.set(asignacion.vehiculo_id, asignacion);
                 }
-                
-                return {
-                    ...vehiculo,
-                    chofer_nombre_completo: choferNombre,
-                    tiene_asignacion_activa: !!asignacionActiva,
-                    nombre_ruta_activa: nombreRuta,
-                    asignacion_activa: asignacionActiva
-                };
-            })
-        );
+            }
+        }
+
+        const vehiculosConInfo = data.map((vehiculo) => {
+            const asignacionActiva = asignacionesPorVehiculo.get(vehiculo.id) || null;
+            const choferNombre = asignacionActiva?.chofer
+                ? `${asignacionActiva.chofer.nombre} ${asignacionActiva.chofer.apellido}`
+                : 'Sin asignar';
+            const nombreRuta = asignacionActiva?.ruta?.nombre_ruta || null;
+
+            return {
+                ...vehiculo,
+                chofer_nombre_completo: choferNombre,
+                tiene_asignacion_activa: !!asignacionActiva,
+                nombre_ruta_activa: nombreRuta,
+                asignacion_activa: asignacionActiva
+            };
+        });
         
         console.log(' Vehículos obtenidos:', vehiculosConInfo.length);
         
