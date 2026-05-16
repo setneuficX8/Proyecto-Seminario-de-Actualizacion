@@ -177,10 +177,16 @@ export const getAsignaciones = async () => {
     try {
         console.log('Obteniendo asignaciones...');
         
-        // Primero intentar sin los JOINs para ver si hay datos
+        // Evitar patrón N+1: cargar asignaciones y relaciones en una sola consulta
         const { data, error } = await supabase
             .from('asignaciones')
-            .select('*')
+            .select(`
+                *,
+                chofer:Chofer(id, nombre, apellido, email, user_id),
+                vehiculo:vehiculos(id, placa, marca, modelo, vehiculo_id_api, activo, disponible),
+                ruta:Rutas(id, nombre_ruta, id_ruta),
+                admin:administrador(id, nombre, apellido)
+            `)
             .order('created_at', { ascending: false });
         
         if (error) {
@@ -188,89 +194,54 @@ export const getAsignaciones = async () => {
             throw error;
         }
         
-        console.log(' Asignaciones obtenidas (sin relaciones):', data?.length || 0);
-        
-        // Si hay datos, intentar cargar las relaciones por separado
-        if (data && data.length > 0) {
-            const asignacionesConRelaciones = await Promise.all(
-                data.map(async (asignacion) => {
-                    // Cargar chofer
-                    const { data: chofer } = await supabase
-                        .from('Chofer')
-                        .select('id, nombre, apellido, email, user_id')
-                        .eq('id', asignacion.chofer_id)
-                        .single();
-                    
-                    // Cargar vehículo
-                    const { data: vehiculo } = await supabase
-                        .from('vehiculos')
-                        .select('id, placa, marca, modelo, vehiculo_id_api, activo, disponible')
-                        .eq('id', asignacion.vehiculo_id)
-                        .single();
-                    
-                    // Cargar ruta
-                    const { data: ruta } = await supabase
-                        .from('Rutas')
-                        .select('id, nombre_ruta, id_ruta')
-                        .eq('id', asignacion.ruta_id)
-                        .single();
-                    
-                    // Cargar admin (puede ser null)
-                    let admin = null;
-                    if (asignacion.asignado_por) {
-                        const { data: adminData } = await supabase
-                            .from('administrador')
-                            .select('id, nombre, apellido')
-                            .eq('id', asignacion.asignado_por)
-                            .maybeSingle();
-                        admin = adminData;
-                    }
-                    
-                    return {
-                        asignacion_id: asignacion.id,
-                        fecha_inicio: asignacion.fecha_inicio,
-                        fecha_fin: asignacion.fecha_fin,
-                        estado: asignacion.estado,
-                        observaciones: asignacion.observaciones,
-                        fecha_asignacion: asignacion.created_at,
-                        updated_at: asignacion.updated_at,
-                        // Nuevos campos de horario
-                        dias_semana: asignacion.dias_semana,
-                        hora_inicio: asignacion.hora_inicio,
-                        hora_fin: asignacion.hora_fin,
-                        // Chofer
-                        chofer_id: asignacion.chofer_id,
-                        chofer_nombre: chofer?.nombre,
-                        chofer_apellido: chofer?.apellido,
-                        chofer_completo: chofer ? `${chofer.nombre} ${chofer.apellido}` : 'N/A',
-                        chofer_email: chofer?.email,
-                        chofer_user_id: chofer?.user_id,
-                        // Vehículo
-                        vehiculo_id: asignacion.vehiculo_id,
-                        placa: vehiculo?.placa,
-                        marca: vehiculo?.marca,
-                        modelo: vehiculo?.modelo,
-                        vehiculo_id_api: vehiculo?.vehiculo_id_api,
-                        vehiculo_completo: vehiculo ? `${vehiculo.marca} ${vehiculo.modelo} - ${vehiculo.placa}` : 'N/A',
-                        vehiculo_activo: vehiculo?.activo,
-                        vehiculo_disponible: vehiculo?.disponible,
-                        // Ruta
-                        ruta_id: asignacion.ruta_id,
-                        nombre_ruta: ruta?.nombre_ruta,
-                        ruta_uuid: ruta?.id_ruta,
-                        // Admin
-                        asignado_por: asignacion.asignado_por,
-                        admin_nombre: admin?.nombre,
-                        admin_apellido: admin?.apellido,
-                        admin_completo: admin ? `${admin.nombre} ${admin.apellido}` : null
-                    };
-                })
-            );
-            
-            return asignacionesConRelaciones;
-        }
-        
-        return [];
+        console.log(' Asignaciones obtenidas:', data?.length || 0);
+
+        const asignacionesTransformadas = data?.map((asignacion) => ({
+            asignacion_id: asignacion.id,
+            fecha_inicio: asignacion.fecha_inicio,
+            fecha_fin: asignacion.fecha_fin,
+            estado: asignacion.estado,
+            observaciones: asignacion.observaciones,
+            fecha_asignacion: asignacion.created_at,
+            updated_at: asignacion.updated_at,
+            // Nuevos campos de horario
+            dias_semana: asignacion.dias_semana,
+            hora_inicio: asignacion.hora_inicio,
+            hora_fin: asignacion.hora_fin,
+            // Chofer
+            chofer_id: asignacion.chofer_id,
+            chofer_nombre: asignacion.chofer?.nombre,
+            chofer_apellido: asignacion.chofer?.apellido,
+            chofer_completo: asignacion.chofer
+                ? `${asignacion.chofer.nombre} ${asignacion.chofer.apellido}`
+                : 'N/A',
+            chofer_email: asignacion.chofer?.email,
+            chofer_user_id: asignacion.chofer?.user_id,
+            // Vehículo
+            vehiculo_id: asignacion.vehiculo_id,
+            placa: asignacion.vehiculo?.placa,
+            marca: asignacion.vehiculo?.marca,
+            modelo: asignacion.vehiculo?.modelo,
+            vehiculo_id_api: asignacion.vehiculo?.vehiculo_id_api,
+            vehiculo_completo: asignacion.vehiculo
+                ? `${asignacion.vehiculo.marca} ${asignacion.vehiculo.modelo} - ${asignacion.vehiculo.placa}`
+                : 'N/A',
+            vehiculo_activo: asignacion.vehiculo?.activo,
+            vehiculo_disponible: asignacion.vehiculo?.disponible,
+            // Ruta
+            ruta_id: asignacion.ruta_id,
+            nombre_ruta: asignacion.ruta?.nombre_ruta,
+            ruta_uuid: asignacion.ruta?.id_ruta,
+            // Admin
+            asignado_por: asignacion.asignado_por,
+            admin_nombre: asignacion.admin?.nombre,
+            admin_apellido: asignacion.admin?.apellido,
+            admin_completo: asignacion.admin
+                ? `${asignacion.admin.nombre} ${asignacion.admin.apellido}`
+                : null
+        })) || [];
+
+        return asignacionesTransformadas;
         
     } catch (error) {
         console.error(" Error en getAsignaciones:", error);

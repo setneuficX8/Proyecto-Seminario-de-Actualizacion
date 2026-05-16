@@ -3,17 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepge":"https://setneuficx8.github.io/Proyecto-Seminario-de-Actualizacion/",
+  "homepge": "https://setneuficx8.github.io/Proyecto-Seminario-de-Actualizacion/",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "predeploy": "vite build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-directions": "^4.3.1",
+    "@mapbox/polyline": "^1.2.1",
     "@reduxjs/toolkit": "^2.9.0",
     "@supabase/supabase-js": "^2.58.0",
     "gh-pages": "^6.3.0",
@@ -30,6 +34,7 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -37,6 +42,7 @@
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "vitest": "^4.1.4"
   }
 }

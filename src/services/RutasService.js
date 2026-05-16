@@ -1,7 +1,7 @@
 import { supabase } from '../Supabase/Conection';
 
-const API_BASE = "https://apirecoleccion.gonzaloandreslucio.com/api";
-const PERFIL_ID = "50dad3d9-66ea-42a1-a06f-c502606d638f";
+const API_BASE = import.meta.env.VITE_API_BASE;
+const PERFIL_ID = import.meta.env.VITE_PERFIL_ID;
 
 
 // Obtener el usuario autenticado actual
@@ -72,33 +72,49 @@ export const getRutas = async () => {
             return [];
         }
         
-        // Para cada ruta, cargar información de asignaciones activas
-        const rutasConInfo = await Promise.all(
-            data.map(async (ruta) => {
-                // Buscar asignaciones activas
-                const { data: asignacionesActivas } = await supabase
-                    .from('asignaciones')
-                    .select(`
-                        id,
-                        fecha_inicio,
-                        fecha_fin,
-                        estado,
-                        chofer_id,
-                        vehiculo_id
-                    `)
-                    .eq('ruta_id', ruta.id)
-                    .eq('estado', 'activa');
-                
-                const cantidadAsignaciones = asignacionesActivas?.length || 0;
-                
-                return {
-                    ...ruta,
-                    tiene_asignaciones_activas: cantidadAsignaciones > 0,
-                    cantidad_asignaciones_activas: cantidadAsignaciones,
-                    asignaciones_activas: asignacionesActivas || []
-                };
-            })
-        );
+        // Evitar patrón N+1: consultar asignaciones activas de todas las rutas en una sola query
+        const rutaIds = data.map(r => r.id).filter(Boolean);
+        let asignacionesPorRuta = new Map();
+
+        if (rutaIds.length > 0) {
+            const { data: asignacionesActivas, error: errorAsignaciones } = await supabase
+                .from('asignaciones')
+                .select(`
+                    id,
+                    ruta_id,
+                    fecha_inicio,
+                    fecha_fin,
+                    estado,
+                    chofer_id,
+                    vehiculo_id
+                `)
+                .eq('estado', 'activa')
+                .in('ruta_id', rutaIds);
+
+            if (errorAsignaciones) {
+                console.error('Error al obtener asignaciones activas:', errorAsignaciones);
+                throw errorAsignaciones;
+            }
+
+            asignacionesPorRuta = new Map();
+            for (const asignacion of (asignacionesActivas || [])) {
+                const listaRuta = asignacionesPorRuta.get(asignacion.ruta_id) || [];
+                listaRuta.push(asignacion);
+                asignacionesPorRuta.set(asignacion.ruta_id, listaRuta);
+            }
+        }
+
+        const rutasConInfo = data.map((ruta) => {
+            const asignacionesRuta = asignacionesPorRuta.get(ruta.id) || [];
+            const cantidadAsignaciones = asignacionesRuta.length;
+
+            return {
+                ...ruta,
+                tiene_asignaciones_activas: cantidadAsignaciones > 0,
+                cantidad_asignaciones_activas: cantidadAsignaciones,
+                asignaciones_activas: asignacionesRuta
+            };
+        });
         
         console.log('Rutas obtenidas:', rutasConInfo.length);
         

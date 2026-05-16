@@ -88,24 +88,32 @@ export const obtenerChoferes = async () => {
       return [];
     }
 
-    // Para cada chofer, verificar si tiene asignaciones activas para determinar disponibilidad
-    const choferesConDisponibilidad = await Promise.all(
-      choferes.map(async (chofer) => {
-        // Buscar asignaciones activas
-        const { data: asignacionActiva } = await supabase
-          .from('asignaciones')
-          .select('id')
-          .eq('chofer_id', chofer.id)
-          .eq('estado', 'activa')
-          .maybeSingle();
+    // Evitar patrón N+1: consultar asignaciones activas de todos los choferes en una sola query
+    const choferIds = choferes.map(c => c.id).filter(Boolean);
+    let choferesConAsignacionActiva = new Set();
 
-        return {
-          ...chofer,
-          nombre_completo: `${chofer.nombre} ${chofer.apellido}`,
-          disponible: !asignacionActiva // Disponible si NO tiene asignación activa
-        };
-      })
-    );
+    if (choferIds.length > 0) {
+      const { data: asignacionesActivas, error: errorAsignaciones } = await supabase
+        .from('asignaciones')
+        .select('chofer_id')
+        .eq('estado', 'activa')
+        .in('chofer_id', choferIds);
+
+      if (errorAsignaciones) {
+        console.error('Error obteniendo asignaciones activas de choferes:', errorAsignaciones);
+        throw errorAsignaciones;
+      }
+
+      choferesConAsignacionActiva = new Set(
+        (asignacionesActivas || []).map(a => a.chofer_id)
+      );
+    }
+
+    const choferesConDisponibilidad = choferes.map((chofer) => ({
+      ...chofer,
+      nombre_completo: `${chofer.nombre} ${chofer.apellido}`,
+      disponible: !choferesConAsignacionActiva.has(chofer.id)
+    }));
 
     console.log('choferes ', choferesConDisponibilidad);
 
