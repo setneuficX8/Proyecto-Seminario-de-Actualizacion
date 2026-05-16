@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepge":"https://setneuficx8.github.io/Proyecto-Seminario-de-Actualizacion/",
+  "homepge": "https://setneuficx8.github.io/Proyecto-Seminario-de-Actualizacion/",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@mapbox/mapbox-gl-directions": "^4.3.1",
+    "@mapbox/polyline": "^1.2.1",
     "@reduxjs/toolkit": "^2.9.0",
     "@supabase/supabase-js": "^2.58.0",
     "gh-pages": "^6.3.0",
