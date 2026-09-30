@@ -1,0 +1,44 @@
+# Entorno de DESARROLLO.
+# Levanta Vite con Hot Reload usando la etapa `development` del Dockerfile.
+#
+#   docker compose up --build      ->  http://localhost:5173
+#
+# Para PRODUCCIÓN se usa la etapa `production` (Nginx + estáticos, target por
+# defecto del Dockerfile):
+#
+#   docker build -t recoleccion-web \
+#     --build-arg VITE_SUPABASE_URL=... --build-arg VITE_SUPABASE_ANON_KEY=... \
+#     --build-arg VITE_MAPBOX_TOKEN=... --build-arg VITE_API_BASE=... \
+#     --build-arg VITE_PERFIL_ID=... .
+#   docker run --rm -p 8080:80 recoleccion-web
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+
+    # 2) Puerto del servidor de Vite expuesto al host.
+    ports:
+      - "5173:5173"
+
+    # 1) Hot Reload: se monta el código del host en /app. El volumen con nombre
+    #    en node_modules evita que los binarios del host (Linux/macOS/Windows)
+    #    pisen los de la imagen y lo mantiene aislado.
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+    # 3) Variables VITE_* tomadas del .env (gitignored). Así no hay ninguna
+    #    credencial escrita en este archivo; en desarrollo solo se usan valores
+    #    públicos (anon key de Supabase y token de Mapbox).
+    env_file:
+      - .env
+
+    # Reenvía señales correctamente para que Ctrl+C detenga Vite sin dejar
+    # procesos huérfanos.
+    init: true
+
+volumes:
+  node_modules:

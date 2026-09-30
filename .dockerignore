@@ -1,0 +1,31 @@
+# Contexto de build mínimo: sólo lo necesario para compilar la SPA.
+# Menos contexto = builds más rápidos y sin filtrar archivos por accidente.
+
+# Dependencias y artefactos de build (se regeneran dentro de la imagen).
+node_modules
+dist
+coverage
+
+# Control de versiones y metadatos.
+.git
+.gitignore
+.github
+
+# Entorno / secretos: NUNCA deben entrar al contexto de build.
+# Las variables VITE_* se pasan como --build-arg, no como archivo.
+.env
+.env.*
+
+# Documentación y material no necesario para el build.
+*.md
+LICENSE
+presentaciones
+image*.png
+supabase
+
+# Editor y este mismo archivo.
+.vscode
+.idea
+*.log
+Dockerfile
+.dockerignore
