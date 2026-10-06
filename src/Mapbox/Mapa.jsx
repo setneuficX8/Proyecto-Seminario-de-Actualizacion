@@ -26,9 +26,31 @@ function Mapa() {
       return
     }
 
+    // Manejadores con referencia estable para poder removerlos explícitamente
+    // en el cleanup (map.on/.off y directions.on/.off).
+    const handleLoad = () => {
+      setIsLoading(false)
+      setError(null)
+    }
+
+    const handleMapError = (e) => {
+      setError(`Error al cargar el mapa: ${e.error.message}`)
+      setIsLoading(false)
+    }
+
+    const handleRoute = (event) => {
+      console.log('Ruta calculada:', event.route)
+      setRutaActual(event.route[0]) // Guardar la primera ruta
+    }
+
+    const handleDirectionsError = (event) => {
+      console.error('Error en direcciones:', event.error)
+      setRutaActual(null)
+    }
+
     try {
       mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
-      
+
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: 'mapbox://styles/mapbox/streets-v11',
@@ -36,7 +58,6 @@ function Mapa() {
         zoom: 10.12
       })
       console.log("Mapa inicializado:", mapRef.current.getCenter())
-    
 
       // Inicializar el control de direcciones
       directionsRef.current = new MapboxDirections({
@@ -55,40 +76,57 @@ function Mapa() {
       // Agregar el control de direcciones al mapa
       mapRef.current.addControl(directionsRef.current, 'top-left')
 
-      mapRef.current.on('load', () => {
-        setIsLoading(false)
-        setError(null)
-      })
-
-      mapRef.current.on('error', (e) => {
-        setError(`Error al cargar el mapa: ${e.error.message}`)
-        setIsLoading(false)
-      })
+      mapRef.current.on('load', handleLoad)
+      mapRef.current.on('error', handleMapError)
 
       // Event listeners para las direcciones
-      directionsRef.current.on('route', (event) => {
-        console.log('Ruta calculada:', event.route)
-        setRutaActual(event.route[0]) // Guardar la primera ruta
-      })
-
-      directionsRef.current.on('error', (event) => {
-        console.error('Error en direcciones:', event.error)
-        setRutaActual(null)
-      })
+      directionsRef.current.on('route', handleRoute)
+      directionsRef.current.on('error', handleDirectionsError)
 
     } catch (err) {
       setError(`Error al inicializar el mapa: ${err.message}`)
       setIsLoading(false)
     }
-   
 
     return () => {
-      if (directionsRef.current) {
-        directionsRef.current.removeRoutes()
+      const map = mapRef.current
+      const directions = directionsRef.current
+
+      // El mapa de Mapbox GL SÍ expone .off(): se remueven sus escuchadores.
+      if (map) {
+        map.off('load', handleLoad)
+        map.off('error', handleMapError)
       }
-      if (mapRef.current) {
-        mapRef.current.remove()
+
+      // IMPORTANTE: MapboxDirections NO expone .off() en esta versión (solo
+      // on/onAdd/onRemove/removeRoutes). Llamarlo revienta el cleanup y tumba el
+      // componente. Se retira el control del mapa (map.removeControl dispara su
+      // onRemove, que limpia sus listeners internos) y se limpian sus rutas.
+      if (directions) {
+        if (typeof directions.off === 'function') {
+          directions.off('route', handleRoute)
+          directions.off('error', handleDirectionsError)
+        }
+        if (typeof directions.removeRoutes === 'function') {
+          directions.removeRoutes()
+        }
+        if (map && typeof map.removeControl === 'function') {
+          try {
+            map.removeControl(directions)
+          } catch (err) {
+            // El control pudo no agregarse si el mapa falló al inicializar.
+            console.warn('No se pudo retirar el control de direcciones:', err)
+          }
+        }
       }
+
+      if (map) {
+        map.remove()
+      }
+
+      // Nulificar referencias para liberar memoria y evitar usos colgantes.
+      mapRef.current = null
+      directionsRef.current = null
     }
   }, [])
 

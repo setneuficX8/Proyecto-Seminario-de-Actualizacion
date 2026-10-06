@@ -1,16 +1,17 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { AuthContext } from './auth-context';
 import { supabase } from '../Supabase/Conection';
 
 /**
  * ============================================
- * CONTEXTO: AuthContext
+ * PROVEEDOR: AuthProvider
  * ============================================
- * Proveedor central de autenticación. Mantiene UNA sola suscripción a
- * onAuthStateChange y resuelve el rol (admin/chofer) una única vez para toda
- * la aplicación. Los componentes consumen el estado con `useAuth`.
+ * Mantiene UNA sola suscripción a onAuthStateChange y resuelve el rol
+ * (admin/chofer) una única vez para toda la aplicación. El valor del contexto se
+ * memoiza con useMemo para evitar re-renderizados innecesarios de los consumidores.
+ *
+ * Este archivo exporta únicamente el componente (Fast Refresh).
  */
-
-export const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -127,7 +128,8 @@ export function AuthProvider({ children }) {
     };
   }, [checkUserRole]);
 
-  const value = {
+  // Valor memoizado del contexto
+  const value = useMemo(() => ({
     user,
     isAdmin,
     isChofer,
@@ -135,13 +137,7 @@ export function AuthProvider({ children }) {
     error,
     userData,
     role: userData?.role || null
-  };
+  }), [user, isAdmin, isChofer, loading, error, userData]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-/**
- * Hook de acceso al contexto (uso interno del provider; el consumidor público
- * vive en `src/hooks/useAuth.js`).
- */
-export const useAuthContext = () => useContext(AuthContext);

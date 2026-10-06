@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { getVehiculos, createVehiculo, deleteVehiculo, updateVehiculo, getChoferesDisponibles } from '../services/VehiculosService';
+import React, { useState, useEffect, useRef } from 'react';
+import { getVehiculos, createVehiculo, deleteVehiculo, updateVehiculo } from '../services/VehiculosService';
+import { getChoferesDisponibles } from '../services/ChoferesService';
 import { useAuth } from '../hooks/useAuth';
 
 const GestionVehiculos = () => {
@@ -22,6 +23,16 @@ const GestionVehiculos = () => {
     chofer_id: ''
   });
 
+  // Referencia de montaje: evita actualizar estado tras el desmontaje.
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!authLoading) {
       cargarVehiculos();
@@ -36,30 +47,34 @@ const GestionVehiculos = () => {
     setError(null);
     try {
       const data = await getVehiculos();
+      if (!isMountedRef.current) return;
       setVehiculos(Array.isArray(data) ? data : []);
     } catch (err) {
+      if (!isMountedRef.current) return;
       setError('Error al cargar vehículos: ' + err.message);
       setVehiculos([]);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 
   const cargarChoferes = async () => {
     try {
       const data = await getChoferesDisponibles();
+      if (!isMountedRef.current) return;
       setChoferes(Array.isArray(data) ? data : []);
     } catch (err) {
+      if (!isMountedRef.current) return;
       console.error('Error al cargar choferes:', err);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: type === 'checkbox' ? checked : value
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { crearChofer, obtenerChoferes, actualizarChofer, eliminarChofer } from '../services/ChoferesService';
 
@@ -21,6 +21,16 @@ const GestionChoferes = () => {
     activo: true
   });
 
+  // Referencia de montaje: evita actualizar estado tras el desmontaje.
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!authLoading && isAdmin) {
       cargarChoferes();
@@ -32,21 +42,23 @@ const GestionChoferes = () => {
     setError(null);
     try {
       const data = await obtenerChoferes();
+      if (!isMountedRef.current) return;
       setChoferes(Array.isArray(data) ? data : []);
     } catch (err) {
+      if (!isMountedRef.current) return;
       setError('Error al cargar choferes: ' + err.message);
       setChoferes([]);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: type === 'checkbox' ? checked : value
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -231,6 +243,7 @@ const GestionChoferes = () => {
         <div className="mb-4 p-4 bg-green-500/20 border border-green-500 rounded-lg text-green-200 flex justify-between items-center">
           <span>{success}</span>
           <button
+            type="button"
             onClick={() => setSuccess(null)}
             className="text-green-400 hover:text-green-300 font-bold"
           >

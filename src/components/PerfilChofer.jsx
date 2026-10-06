@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../Supabase/Conection';
 
@@ -9,20 +9,24 @@ const PerfilChofer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!authLoading && isChofer && userData) {
-      cargarPerfil();
-    }
-  }, [authLoading, isChofer, userData]);
+  // Referencia de montaje: evita actualizar estado tras el desmontaje.
+  const isMountedRef = useRef(true);
 
-  const cargarPerfil = async () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const cargarPerfil = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Obtener datos del chofer desde la vista
+      // Obtener datos del chofer directamente desde la tabla Chofer
       const { data: choferData, error: choferError } = await supabase
-        .from('vista_choferes_disponibles')
+        .from('Chofer')
         .select('*')
         .eq('id', userData.id)
         .single();
@@ -32,6 +36,7 @@ const PerfilChofer = () => {
         throw new Error('Error al cargar perfil del chofer');
       }
 
+      if (!isMountedRef.current) return;
       setChofer(choferData);
 
       // Obtener asignación activa con detalles completos
@@ -51,15 +56,23 @@ const PerfilChofer = () => {
         console.error('Error obteniendo asignación:', asignacionError);
       }
 
+      if (!isMountedRef.current) return;
       setAsignacionActiva(asignacionData);
 
     } catch (err) {
+      if (!isMountedRef.current) return;
       console.error('Error cargando perfil:', err);
       setError(err.message);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
-  };
+  }, [userData]);
+
+  useEffect(() => {
+    if (!authLoading && isChofer && userData) {
+      cargarPerfil();
+    }
+  }, [authLoading, isChofer, userData, cargarPerfil]);
 
   if (authLoading || loading) {
     return (

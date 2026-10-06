@@ -20,19 +20,22 @@ const getCurrentUser = async () => {
 const verificarRolUsuario = async () => {
     const user = await getCurrentUser();
     
-    // Verificar si es administrador
-    const { data: admin, error: errorAdmin } = await supabase
-        .from('administrador')
-        .select('id, nombre, apellido, email')
-        .eq('user_id', user.id)
-        .maybeSingle();
+    const [adminRes, choferRes] = await Promise.all([
+        supabase
+            .from('administrador')
+            .select('id, nombre, apellido, email')
+            .eq('user_id', user.id)
+            .maybeSingle(),
     
-    // Verificar si es chofer
-    const { data: chofer, error: errorChofer } = await supabase
-        .from('Chofer')
-        .select('id, nombre, apellido, email')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        supabase
+            .from('Chofer')
+            .select('id, nombre, apellido, email')
+            .eq('user_id', user.id)
+            .maybeSingle()
+    ]);
+
+    const { data: admin, error: errorAdmin } = adminRes;
+    const { data: chofer, error: errorChofer } = choferRes;
     
     if (errorAdmin || errorChofer) {
         console.error('Error al verificar rol:', errorAdmin || errorChofer);
@@ -208,7 +211,6 @@ export const getRutaById = async (rutaId) => {
 export const createRuta = async (rutaData) => {
     try {
         console.log('Iniciando creación de ruta...');
-        console.log('Datos recibidos:', rutaData);
         
         // 1. Verificar que el usuario es ADMIN
         const { isAdmin, adminData } = await verificarRolUsuario();
@@ -217,7 +219,6 @@ export const createRuta = async (rutaData) => {
             throw new Error('Solo los administradores pueden crear rutas');
         }
         
-        console.log('Admin autorizado:', adminData);
         
         // 2. Crear ruta en la API externa
         console.log('Creando en API externa...');
@@ -246,7 +247,6 @@ export const createRuta = async (rutaData) => {
         }
 
         const rutaApi = await apiResponse.json();
-        console.log('Ruta creada en API:', rutaApi);
         
         // 3. Guardar en Supabase con el ID de la API y creado_por
         console.log('Guardando en Supabase con ruta_id_api:', rutaApi.id);
@@ -270,7 +270,6 @@ export const createRuta = async (rutaData) => {
             throw new Error('No se pudo crear la ruta en Supabase: ' + errorSupabase.message);
         }
         
-        console.log('Ruta creada completamente:', rutaLocal);
         
         return {
             ...rutaLocal,

@@ -28,7 +28,6 @@ function LoginSupabase(){
                 setTimeout(() => setLoginError(null), 4500);
                 return;
             }
-            console.log(res);
         } catch (error){
             console.error('Error al iniciar sesion:', error);
             setLoginError('Error al iniciar sesión');
@@ -53,6 +52,7 @@ function LoginSupabase(){
                                 <strong className="font-semibold">Error: </strong>
                                 <span className="ml-1">{loginError}</span>
                                 <button
+                                    type="button"
                                     onClick={() => setLoginError(null)}
                                     className="absolute top-1/2 right-3 -translate-y-1/2 text-red-700 hover:text-red-900"
                                     aria-label="Cerrar alerta"

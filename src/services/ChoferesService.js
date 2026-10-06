@@ -37,7 +37,6 @@ export const crearChofer = async (choferData) => {
         creado_por: admin.id
       }
     });
-    console.log('Funciona HDP:', data, error);
 
     if (error) {
       console.error('Error invocando Edge Function:', error);
@@ -115,7 +114,6 @@ export const obtenerChoferes = async () => {
       disponible: !choferesConAsignacionActiva.has(chofer.id)
     }));
 
-    console.log('choferes ', choferesConDisponibilidad);
 
     return choferesConDisponibilidad;
 
@@ -173,7 +171,6 @@ export const actualizarChofer = async (id, choferData) => {
       .eq('id', id)
       .select()
       .single();
-      console.log(data);
 
     if (error) {
       console.error('Error actualizando chofer:', error);
@@ -259,6 +256,30 @@ export const obtenerChoferesDisponibles = async () => {
   }
 };
 
+/**
+ * CANÓNICO: Obtener choferes activos para selectores (incluye nombre_completo).
+ * Fuente única consumida por GestionVehiculos, AsignacionesService, etc.
+ */
+export const getChoferesDisponibles = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('Chofer')
+      .select('id, nombre, apellido, email, activo')
+      .eq('activo', true)
+      .order('nombre', { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map(c => ({
+      ...c,
+      nombre_completo: `${c.nombre} ${c.apellido}`
+    }));
+  } catch (error) {
+    console.error('Error en getChoferesDisponibles:', error);
+    throw new Error(error.message || 'Error al obtener choferes disponibles');
+  }
+};
+
 // Exportación para compatibilidad con código antiguo
 export const ChoferesService = {
   crearChofer,
@@ -267,5 +288,6 @@ export const ChoferesService = {
   actualizarChofer,
   eliminarChofer,
   obtenerChoferesActivos,
-  obtenerChoferesDisponibles
+  obtenerChoferesDisponibles,
+  getChoferesDisponibles
 };

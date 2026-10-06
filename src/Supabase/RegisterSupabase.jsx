@@ -48,7 +48,6 @@ function RegisterSupabase() {
                 return;
             }
 
-            console.log('Usuario registrado:', data);
             
             // El trigger de Supabase creará automáticamente el registro en la tabla administrador
             Swal.fire({

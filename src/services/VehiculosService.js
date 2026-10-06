@@ -21,19 +21,22 @@ const getCurrentUser = async () => {
 const verificarRolUsuario = async () => {
     const user = await getCurrentUser();
     
-    // Verificar si es administrador
-    const { data: admin, error: errorAdmin } = await supabase
-        .from('administrador')
-        .select('id, nombre, apellido, email')
-        .eq('user_id', user.id)
-        .maybeSingle();
+    const [adminRes, choferRes] = await Promise.all([
+        supabase
+            .from('administrador')
+            .select('id, nombre, apellido, email')
+            .eq('user_id', user.id)
+            .maybeSingle(),
     
-    // Verificar si es chofer
-    const { data: chofer, error: errorChofer } = await supabase
-        .from('Chofer')
-        .select('id, nombre, apellido, email')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        supabase
+            .from('Chofer')
+            .select('id, nombre, apellido, email')
+            .eq('user_id', user.id)
+            .maybeSingle()
+    ]);
+
+    const { data: admin, error: errorAdmin } = adminRes;
+    const { data: chofer, error: errorChofer } = choferRes;
     
     if (errorAdmin || errorChofer) {
         console.error('Error al verificar rol:', errorAdmin || errorChofer);
@@ -56,7 +59,6 @@ const getChoferDelUsuario = async () => {
         throw new Error('No se encontró un chofer asociado a tu usuario. Por favor, contacta al administrador.');
     }
     
-    console.log('Chofer encontrado (id INTEGER):', choferData.id);
     return choferData;
 };
 
@@ -156,7 +158,6 @@ export const getVehiculos = async () => {
 export const createVehiculo = async (vehiculoData) => {
     try {
         console.log(' Iniciando creación de vehículo...');
-        console.log(' Datos recibidos:', vehiculoData);
         
         // 1. Verificar que el usuario es ADMIN
         const { isAdmin, adminData } = await verificarRolUsuario();
@@ -165,7 +166,6 @@ export const createVehiculo = async (vehiculoData) => {
             throw new Error('Solo los administradores pueden crear vehículos');
         }
         
-        console.log(' Admin autorizado:', adminData);
         
         // 2. Crear vehículo en la API externa CON perfil_id
         console.log(' Creando en API externa...');
@@ -199,7 +199,6 @@ export const createVehiculo = async (vehiculoData) => {
         }
 
         const vehiculoApi = await apiResponse.json();
-        console.log('Vehículo creado en API:', vehiculoApi);
         
         // 3. Guardar en Supabase con el ID de la API y creado_por
         console.log(' Guardando en Supabase con vehiculo_id_api:', vehiculoApi.id);
@@ -225,7 +224,6 @@ export const createVehiculo = async (vehiculoData) => {
             throw new Error('No se pudo crear el vehículo en Supabase: ' + errorSupabase.message);
         }
         
-        console.log(' Vehículo creado completamente:', vehiculoLocal);
         
         return {
             ...vehiculoLocal,
@@ -391,28 +389,8 @@ export const deleteVehiculo = async (vehiculoId) => {
 
 
 /**
- * Obtener todos los choferes disponibles (para selector de admin)
+ * getChoferesDisponibles se centralizó en ChoferesService (fuente única).
  */
-export const getChoferesDisponibles = async () => {
-    try {
-        const { data, error } = await supabase
-            .from('Chofer')
-            .select('id, nombre, apellido, email, activo')
-            .eq('activo', true)
-            .order('nombre');
-        
-        if (error) throw error;
-        
-        return data?.map(c => ({
-            ...c,
-            nombre_completo: `${c.nombre} ${c.apellido}`
-        })) || [];
-        
-    } catch (error) {
-        console.error(" Error al obtener choferes:", error);
-        throw error;
-    }
-};
 
 /**
  * Obtener un vehículo específico por su ID

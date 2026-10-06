@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getRutas, updateRuta, deleteRuta, desactivarRuta, reactivarRuta } from '../services/RutasService';
 
@@ -12,6 +12,16 @@ const GestionRutas = () => {
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
 
+  // Referencia de montaje: evita actualizar estado tras el desmontaje.
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (!authLoading && isAdmin) {
       cargarRutas();
@@ -23,12 +33,14 @@ const GestionRutas = () => {
       setLoading(true);
       setError(null);
       const data = await getRutas();
+      if (!isMountedRef.current) return;
       setRutas(data);
     } catch (err) {
+      if (!isMountedRef.current) return;
       setError(err.message || 'Error al cargar rutas');
       console.error('Error cargando rutas:', err);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 

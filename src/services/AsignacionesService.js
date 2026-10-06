@@ -97,8 +97,8 @@ const verificarConflictoHorarioRuta = async (rutaId, diasSemana, horaInicio, hor
         // Verificar cada asignación existente
         for (const asignacion of asignacionesExistentes) {
             // Verificar si hay días en común
-            const diasExistentes = asignacion.dias_semana || [];
-            const diasEnComun = diasSemana.filter(d => diasExistentes.includes(d));
+            const diasExistentes = new Set(asignacion.dias_semana || []);
+            const diasEnComun = diasSemana.filter(d => diasExistentes.has(d));
             
             if (diasEnComun.length === 0) {
                 continue; // No hay días en común, no hay conflicto con esta asignación
@@ -329,7 +329,6 @@ export const getAsignacionesActivas = async () => {
 export const createAsignacion = async (asignacionData) => {
     try {
         console.log('Iniciando creación de asignación...');
-        console.log(' Datos recibidos:', asignacionData);
         
         // Verificar que el usuario es admin
         const { isAdmin, adminId } = await isUserAdmin();
@@ -369,7 +368,6 @@ export const createAsignacion = async (asignacionData) => {
             hora_fin: asignacionData.hora_fin || null
         };
         
-        console.log(' Insertando asignación:', dataParaInsertar);
         
         const { data: asignacion, error } = await supabase
             .from('asignaciones')
@@ -386,7 +384,6 @@ export const createAsignacion = async (asignacionData) => {
             throw error;
         }
         
-        console.log(' Asignación creada:', asignacion);
         
         // Marcar vehículo como no disponible si la asignación está activa
         if (dataParaInsertar.estado === 'activa') {
@@ -448,7 +445,6 @@ export const updateAsignacion = async (asignacionId, asignacionData) => {
             throw error;
         }
         
-        console.log(' Asignación actualizada:', asignacion);
         return asignacion;
         
     } catch (error) {
@@ -510,7 +506,6 @@ export const cambiarEstadoAsignacion = async (asignacionId, nuevoEstado) => {
             await actualizarDisponibilidadVehiculo(asignacionActual.vehiculo_id);
         }
         
-        console.log(' Estado cambiado:', asignacion);
         return asignacion;
         
     } catch (error) {
@@ -570,30 +565,8 @@ export const deleteAsignacion = async (asignacionId) => {
     }
 };
 
- // Obtener choferes activos disponibles
-export const getChoferesDisponibles = async () => {
-    try {
-        const { data, error } = await supabase
-            .from('Chofer')
-            .select('*')
-            .eq('activo', true)
-            .order('nombre', { ascending: true });
-        
-        if (error) throw error;
-        
-        // Transformar para incluir nombre_completo
-        const choferesTransformados = data?.map(c => ({
-            ...c,
-            nombre_completo: `${c.nombre} ${c.apellido}`
-        })) || [];
-        
-        return choferesTransformados;
-        
-    } catch (error) {
-        console.error(" Error al obtener choferes disponibles:", error);
-        throw error;
-    }
-};
+// Obtener choferes activos disponibles (fuente única: ChoferesService)
+export { getChoferesDisponibles } from './ChoferesService';
 
 
   // Obtener vehículos disponibles (sin asignación activa)

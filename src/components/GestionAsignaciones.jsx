@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import {getAsignaciones,getAsignacionesActivas,createAsignacion,cambiarEstadoAsignacion,deleteAsignacion,getChoferesDisponibles,getVehiculosDisponibles,getRutasActivas,verificarConflictoHorarioRuta} from '../services/AsignacionesService';
 
@@ -51,13 +51,17 @@ const GestionAsignaciones = () => {
     observaciones: ''
   });
 
-  useEffect(() => {
-    if (!authLoading) {
-      cargarDatos();
-    }
-  }, [authLoading, filtro]);
+  // Referencia de montaje: evita actualizar estado tras el desmontaje.
+  const isMountedRef = useRef(true);
 
-  const cargarDatos = async () => {
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const cargarDatos = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -74,6 +78,7 @@ const GestionAsignaciones = () => {
         }
       }
       
+      if (!isMountedRef.current) return;
       setAsignaciones(data);
 
       // Solo cargar recursos si es admin
@@ -84,52 +89,62 @@ const GestionAsignaciones = () => {
           getRutasActivas()
         ]);
         
+        if (!isMountedRef.current) return;
         setChoferes(choferesData);
         setVehiculos(vehiculosData);
         setRutas(rutasData);
       }
     } catch (err) {
+      if (!isMountedRef.current) return;
       console.error('Error al cargar datos:', err);
       setError('Error al cargar datos: ' + err.message);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
-  };
+  }, [filtro, isAdmin]);
+
+  useEffect(() => {
+    if (!authLoading) {
+      cargarDatos();
+    }
+  }, [authLoading, cargarDatos]);
 
   const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [e.target.name]: e.target.value
-    });
+    }));
   };
 
   // Manejar cambio en checkboxes de días
   const handleDiaChange = (diaId) => {
-    const diasActuales = formData.dias_semana || [];
-    const nuevosDias = diasActuales.includes(diaId)
-      ? diasActuales.filter(d => d !== diaId)
-      : [...diasActuales, diaId].sort((a, b) => a - b);
+    setFormData(prev => {
+      const diasActuales = prev.dias_semana || [];
+      const nuevosDias = diasActuales.includes(diaId)
+        ? diasActuales.filter(d => d !== diaId)
+        : [...diasActuales, diaId].sort((a, b) => a - b);
     
-    setFormData({
-      ...formData,
-      dias_semana: nuevosDias
+      return {
+        ...prev,
+        dias_semana: nuevosDias
+      };
     });
   };
 
   // Seleccionar Lunes a Viernes rápidamente
   const seleccionarLunesViernes = () => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       dias_semana: [1, 2, 3, 4, 5]
-    });
+    }));
   };
 
   // Limpiar selección de días
   const limpiarDias = () => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       dias_semana: []
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
