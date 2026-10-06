@@ -1,10 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
-import { lazy, Suspense, useState } from 'react'
-import { useEffect } from 'react';
-import { supabase } from './Supabase/Conection';
+import { lazy, Suspense, useState, useEffect } from 'react'
 import useAuth from './hooks/useAuth';
 import RoleRoute from './components/RoleRoute';
-//import PrivateRoute from './components/PrivateRoute';
 
 // Utilizando lazy loading para los componentes
 const Mapa = lazy(() => import('./Mapbox/Mapa'));
@@ -20,35 +17,26 @@ const Home = lazy(() => import('./components/Home'));
 // Componente interno que maneja la autenticación
 function AppContent() {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Verificar sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session && window.location.pathname !== '/RegisterSupabase' && window.location.pathname !== '/LoginSupabase') {
-        navigate('/LoginSupabase');
-      }
-    });
-
-    // Suscribirse a cambios de autenticación
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session);
-      
-      // Solo redirigir en eventos específicos
-      if (event === 'SIGNED_IN') {
-        navigate('/');
-      } else if (event === 'SIGNED_OUT') {
-        navigate('/LoginSupabase');
-      }
-    });
-
-    // Cleanup: desuscribirse cuando el componente se desmonte
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
-  }, [navigate]);
-
   const { user, role, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Redirección según el estado de sesión. La suscripción a Supabase vive en
+  // AuthProvider (una única suscripción para toda la aplicación).
+  useEffect(() => {
+    if (loading) return;
+
+    const path = window.location.pathname;
+
+    if (!user) {
+      // Sin sesión: solo se permite permanecer en login/registro.
+      if (path !== '/RegisterSupabase' && path !== '/LoginSupabase') {
+        navigate('/LoginSupabase');
+      }
+    } else if (path === '/LoginSupabase') {
+      // Con sesión: salir de la pantalla de login.
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 font-poppins">

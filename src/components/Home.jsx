@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../Supabase/Conection';
-import { useAuth } from '../hooks/useAuth';
 import { getAsignaciones } from '../services/AsignacionesService';
 import { obtenerChoferesActivos } from '../services/ChoferesService';
 import { getVehiculos } from '../services/VehiculosService';
@@ -9,7 +8,6 @@ import { getRutasActivas } from '../services/RutasService';
 
 function Home() {
   const navigate = useNavigate();
-  const { isChofer } = useAuth();
   const [activeRoutes, setActiveRoutes] = useState(0);
   const [trucksInOperation, setTrucksInOperation] = useState(0);
   const [activeDrivers, setActiveDrivers] = useState(0);
