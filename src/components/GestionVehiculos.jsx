@@ -1,15 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { getVehiculos, createVehiculo, deleteVehiculo, updateVehiculo } from '../services/VehiculosService';
-import { getChoferesDisponibles } from '../services/ChoferesService';
-import { useAuth } from '../hooks/useAuth';
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useVehiculos } from '@/hooks/useVehiculos';
 
 const GestionVehiculos = () => {
   const { isAdmin, isChofer, loading: authLoading, userData } = useAuth();
-  const [vehiculos, setVehiculos] = useState([]);
-  const [choferes, setChoferes] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const {
+    vehiculos,
+    choferesDisponibles,
+    loading,
+    error,
+    reload,
+    crearVehiculo,
+    actualizarVehiculo,
+    eliminarVehiculo
+  } = useVehiculos();
+
+  // Estado exclusivamente de UI
   const [success, setSuccess] = useState(null);
+  const [formError, setFormError] = useState(null);
   const [editando, setEditando] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [filtroDisponibilidad, setFiltroDisponibilidad] = useState('todos');
@@ -23,52 +31,6 @@ const GestionVehiculos = () => {
     chofer_id: ''
   });
 
-  // Referencia de montaje: evita actualizar estado tras el desmontaje.
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!authLoading) {
-      cargarVehiculos();
-      if (isAdmin) {
-        cargarChoferes();
-      }
-    }
-  }, [authLoading, isAdmin]);
-
-  const cargarVehiculos = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getVehiculos();
-      if (!isMountedRef.current) return;
-      setVehiculos(Array.isArray(data) ? data : []);
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      setError('Error al cargar vehículos: ' + err.message);
-      setVehiculos([]);
-    } finally {
-      if (isMountedRef.current) setLoading(false);
-    }
-  };
-
-  const cargarChoferes = async () => {
-    try {
-      const data = await getChoferesDisponibles();
-      if (!isMountedRef.current) return;
-      setChoferes(Array.isArray(data) ? data : []);
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      console.error('Error al cargar choferes:', err);
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -80,41 +42,37 @@ const GestionVehiculos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isAdmin) {
-      setError('Solo los administradores pueden gestionar vehículos');
+      setFormError('Solo los administradores pueden gestionar vehículos');
       return;
     }
-    
-    setLoading(true);
-    setError(null);
+
+    setFormError(null);
     setSuccess(null);
-    
+
     try {
       if (editando) {
-        await updateVehiculo(editando, formData);
+        await actualizarVehiculo(editando, formData);
         setSuccess('Vehículo actualizado correctamente');
         setEditando(null);
       } else {
-        await createVehiculo(formData);
+        await crearVehiculo(formData);
         setSuccess('Vehículo creado correctamente');
       }
-      
+
       setFormData({ placa: '', marca: '', modelo: '', activo: true, chofer_id: '' });
-      await cargarVehiculos();
       setTimeout(() => setSuccess(null), 3000);
-      
+
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
   const handleEdit = (vehiculo) => {
     if (!isAdmin || vehiculo.tiene_asignacion_activa) {
-      setError(vehiculo.tiene_asignacion_activa ? 'No se puede editar un vehículo con asignación activa' : 'Solo los administradores pueden editar vehículos');
+      setFormError(vehiculo.tiene_asignacion_activa ? 'No se puede editar un vehículo con asignación activa' : 'Solo los administradores pueden editar vehículos');
       return;
     }
-    
+
     setEditando(vehiculo.id);
     setFormData({
       placa: vehiculo.placa,
@@ -123,7 +81,7 @@ const GestionVehiculos = () => {
       activo: vehiculo.activo,
       chofer_id: vehiculo.chofer_id || ''
     });
-    setError(null);
+    setFormError(null);
     setSuccess(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -131,42 +89,38 @@ const GestionVehiculos = () => {
   const handleCancelarEdicion = () => {
     setEditando(null);
     setFormData({ placa: '', marca: '', modelo: '', activo: true, chofer_id: '' });
-    setError(null);
+    setFormError(null);
     setSuccess(null);
   };
 
   const handleDelete = async (id) => {
     if (!isAdmin) {
-      setError('Solo los administradores pueden eliminar vehículos');
+      setFormError('Solo los administradores pueden eliminar vehículos');
       return;
     }
-    
+
     const vehiculo = vehiculos.find(v => v.id === id);
-    
+
     if (vehiculo?.tiene_asignacion_activa) {
-      setError('No se puede eliminar un vehículo con asignación activa');
+      setFormError('No se puede eliminar un vehículo con asignación activa');
       return;
     }
-    
+
     if (vehiculo?.chofer_id) {
-      setError('No se puede eliminar un vehículo asignado a un chofer. Desasigne el chofer primero.');
+      setFormError('No se puede eliminar un vehículo asignado a un chofer. Desasigne el chofer primero.');
       return;
     }
-    
+
     if (!window.confirm('¿Estás seguro de que quieres eliminar este vehículo? Esta acción no se puede deshacer.')) {
       return;
     }
-    
-    setLoading(true);
+
     try {
-      await deleteVehiculo(id);
+      await eliminarVehiculo(id);
       setSuccess('Vehículo eliminado correctamente');
-      await cargarVehiculos();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -175,17 +129,17 @@ const GestionVehiculos = () => {
       if (filtroEstado === 'activos' && !vehiculo.activo) return false;
       if (filtroEstado === 'inactivos' && vehiculo.activo) return false;
     }
-    
+
     if (filtroDisponibilidad !== 'todos') {
       if (filtroDisponibilidad === 'disponibles' && vehiculo.tiene_asignacion_activa) return false;
       if (filtroDisponibilidad === 'asignados' && !vehiculo.tiene_asignacion_activa) return false;
     }
-    
+
     if (isAdmin && filtroChofer !== 'todos') {
       if (filtroChofer === 'sin_asignar' && vehiculo.chofer_id) return false;
       if (filtroChofer !== 'sin_asignar' && vehiculo.chofer_id !== parseInt(filtroChofer)) return false;
     }
-    
+
     if (busqueda) {
       const searchLower = busqueda.toLowerCase();
       return (
@@ -195,7 +149,7 @@ const GestionVehiculos = () => {
         vehiculo.chofer_nombre_completo?.toLowerCase().includes(searchLower)
       );
     }
-    
+
     return true;
   });
 
@@ -212,20 +166,20 @@ const GestionVehiculos = () => {
       <h1 className="text-3xl font-bold mb-6 text-white">
         {isAdmin ? 'Gestión de Vehículos' : 'Mis Vehículos Asignados'}
       </h1>
-      
+
       {/* Mensajes */}
-      {error && (
+      {(error || formError) && (
         <div className="mb-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
-          {error}
+          {error || formError}
         </div>
       )}
-      
+
       {success && (
         <div className="mb-4 p-4 bg-green-500/20 border border-green-500 rounded-lg text-green-200">
           {success}
         </div>
       )}
-      
+
       {/* Formulario - SOLO ADMIN */}
       {isAdmin && (
         <div className={`mb-8 p-6 border rounded-lg shadow-md backdrop-blur-sm ${
@@ -248,7 +202,7 @@ const GestionVehiculos = () => {
                   className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Marca *</label>
                 <input
@@ -261,7 +215,7 @@ const GestionVehiculos = () => {
                   className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Modelo/Año *</label>
                 <input
@@ -275,7 +229,7 @@ const GestionVehiculos = () => {
                 />
               </div>
                 </div>
-            
+
             <div className="mb-4">
               <label className="flex items-center gap-2 text-gray-200 font-medium cursor-pointer">
                 <input
@@ -288,22 +242,22 @@ const GestionVehiculos = () => {
                 Vehículo activo
               </label>
             </div>
-            
+
             <div className="flex gap-3">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={loading}
                 className={`py-2.5 px-6 text-white rounded-md font-medium transition ${
-                  editando 
-                    ? 'bg-yellow-600 hover:bg-yellow-700' 
+                  editando
+                    ? 'bg-yellow-600 hover:bg-yellow-700'
                     : 'bg-sky-600 hover:bg-sky-700'
                 } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
               >
                 {loading ? 'Guardando...' : editando ? 'Actualizar' : 'Crear Vehículo'}
               </button>
-              
+
               {editando && (
-                <button 
+                <button
                   type="button"
                   onClick={handleCancelarEdicion}
                   disabled={loading}
@@ -316,7 +270,7 @@ const GestionVehiculos = () => {
           </form>
         </div>
       )}
-      
+
       {/* Filtros y búsqueda */}
       <div className="mb-6 p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -330,7 +284,7 @@ const GestionVehiculos = () => {
               className="w-full p-2 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Estado</label>
             <select
@@ -343,7 +297,7 @@ const GestionVehiculos = () => {
               <option value="inactivos">Inactivos</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Disponibilidad</label>
             <select
@@ -356,7 +310,7 @@ const GestionVehiculos = () => {
               <option value="asignados">En asignación</option>
             </select>
           </div>
-          
+
           {isAdmin && (
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">Chofer</label>
@@ -367,7 +321,7 @@ const GestionVehiculos = () => {
               >
                 <option value="todos">Todos</option>
                 <option value="sin_asignar">Sin asignar</option>
-                {choferes.map(chofer => (
+                {choferesDisponibles.map(chofer => (
                   <option key={chofer.id} value={chofer.id}>
                     {chofer.nombre_completo}
                   </option>
@@ -377,15 +331,15 @@ const GestionVehiculos = () => {
           )}
         </div>
       </div>
-      
+
       {/* Lista de vehículos */}
       <div>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold text-white">
             {vehiculosFiltrados.length} {vehiculosFiltrados.length === 1 ? 'Vehículo' : 'Vehículos'}
           </h2>
-          <button 
-            onClick={cargarVehiculos}
+          <button
+            onClick={reload}
             disabled={loading}
             className="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-60"
           >
@@ -400,7 +354,7 @@ const GestionVehiculos = () => {
         ) : (
           <div className="grid gap-4">
             {vehiculosFiltrados.map((vehiculo) => (
-              <div 
+              <div
                 key={vehiculo.id}
                 className="p-5 border border-slate-700 rounded-lg bg-slate-800/70 shadow-lg hover:border-slate-600 transition"
               >
@@ -413,17 +367,17 @@ const GestionVehiculos = () => {
                       {vehiculo.marca} {vehiculo.modelo}
                     </p>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     {/* Badge Estado */}
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      vehiculo.activo 
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/50' 
+                      vehiculo.activo
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/50'
                         : 'bg-gray-500/20 text-gray-400 border border-gray-500/50'
                     }`}>
                       {vehiculo.activo ? 'Activo' : 'Inactivo'}
                     </span>
-                    
+
                     {/* Badge Disponibilidad */}
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                       vehiculo.tiene_asignacion_activa
@@ -434,7 +388,7 @@ const GestionVehiculos = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-4">
                   <div>
                     <span className="text-gray-400">Chofer asignado:</span>
@@ -442,7 +396,7 @@ const GestionVehiculos = () => {
                       {vehiculo.chofer_nombre_completo}
                     </span>
                   </div>
-                  
+
                   {vehiculo.tiene_asignacion_activa && (
                     <div>
                       <span className="text-gray-400">Ruta activa:</span>
@@ -452,7 +406,7 @@ const GestionVehiculos = () => {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Acciones - Solo para Admin */}
                 {isAdmin && (
                   <div className="flex gap-2 mt-4 pt-4 border-t border-slate-700">
@@ -464,16 +418,16 @@ const GestionVehiculos = () => {
                     >
                       Editar
                     </button>
-                    
+
                     <button
                       onClick={() => handleDelete(vehiculo.id)}
                       disabled={vehiculo.tiene_asignacion_activa || vehiculo.chofer_id || loading}
                       className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       title={
-                        vehiculo.tiene_asignacion_activa 
-                          ? 'No se puede eliminar con asignación activa' 
-                          : vehiculo.chofer_id 
-                            ? 'Desasigne el chofer primero' 
+                        vehiculo.tiene_asignacion_activa
+                          ? 'No se puede eliminar con asignación activa'
+                          : vehiculo.chofer_id
+                            ? 'Desasigne el chofer primero'
                             : 'Eliminar vehículo'
                       }
                     >
@@ -486,7 +440,7 @@ const GestionVehiculos = () => {
           </div>
         )}
       </div>
-      
+
       {/* Vista de información del chofer - Solo para choferes */}
       {isChofer && userData && (
         <div className="mt-8 p-6 border border-slate-700 rounded-lg bg-slate-800/50">

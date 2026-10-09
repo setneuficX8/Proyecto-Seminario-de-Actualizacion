@@ -1,6 +1,14 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
+  resolve: {
+    // Mismo alias que vite.config.ts (@ -> /src) para que los tests resuelvan
+    // los imports con alias de hooks/servicios.
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],

@@ -1,13 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { crearChofer, obtenerChoferes, actualizarChofer, eliminarChofer } from '../services/ChoferesService';
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useChoferes } from '@/hooks/useChoferes';
 
 const GestionChoferes = () => {
   const { isAdmin, loading: authLoading } = useAuth();
-  const [choferes, setChoferes] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const {
+    choferes,
+    loading,
+    error,
+    reload,
+    crearChofer,
+    actualizarChofer,
+    eliminarChofer
+  } = useChoferes();
+
+  // Estado exclusivamente de UI
   const [success, setSuccess] = useState(null);
+  const [formError, setFormError] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [editando, setEditando] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('todos');
@@ -21,38 +30,6 @@ const GestionChoferes = () => {
     activo: true
   });
 
-  // Referencia de montaje: evita actualizar estado tras el desmontaje.
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!authLoading && isAdmin) {
-      cargarChoferes();
-    }
-  }, [authLoading, isAdmin]);
-
-  const cargarChoferes = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await obtenerChoferes();
-      if (!isMountedRef.current) return;
-      setChoferes(Array.isArray(data) ? data : []);
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      setError('Error al cargar choferes: ' + err.message);
-      setChoferes([]);
-    } finally {
-      if (isMountedRef.current) setLoading(false);
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -63,8 +40,7 @@ const GestionChoferes = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    setFormError(null);
     setSuccess(null);
 
     try {
@@ -79,22 +55,19 @@ const GestionChoferes = () => {
         setSuccess('Chofer actualizado correctamente');
         setEditando(null);
       } else {
-        // Modo creación: Validar passwords
+        // Modo creación: Validar passwords (validación de UI)
         if (!formData.password || !formData.confirmPassword) {
-          setError('La contraseña es requerida');
-          setLoading(false);
+          setFormError('La contraseña es requerida');
           return;
         }
 
         if (formData.password.length < 6) {
-          setError('La contraseña debe tener al menos 6 caracteres');
-          setLoading(false);
+          setFormError('La contraseña debe tener al menos 6 caracteres');
           return;
         }
 
         if (formData.password !== formData.confirmPassword) {
-          setError('Las contraseñas no coinciden');
-          setLoading(false);
+          setFormError('Las contraseñas no coinciden');
           return;
         }
 
@@ -104,25 +77,22 @@ const GestionChoferes = () => {
           email: formData.email,
           password: formData.password
         });
-        
+
         setSuccess(result.message || 'Chofer creado exitosamente');
       }
 
-      setFormData({ 
-        nombre: '', 
-        apellido: '', 
-        email: '', 
+      setFormData({
+        nombre: '',
+        apellido: '',
+        email: '',
         password: '',
         confirmPassword: '',
-        activo: true 
+        activo: true
       });
       setMostrarFormulario(false);
-      await cargarChoferes();
       setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -136,7 +106,7 @@ const GestionChoferes = () => {
       confirmPassword: '',
       activo: chofer.activo
     });
-    setError(null);
+    setFormError(null);
     setSuccess(null);
     setMostrarFormulario(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -145,36 +115,31 @@ const GestionChoferes = () => {
   const handleCancelar = () => {
     setEditando(null);
     setMostrarFormulario(false);
-    setFormData({ 
-      nombre: '', 
-      apellido: '', 
-      email: '', 
+    setFormData({
+      nombre: '',
+      apellido: '',
+      email: '',
       password: '',
       confirmPassword: '',
-      activo: true 
+      activo: true
     });
-    setError(null);
+    setFormError(null);
     setSuccess(null);
   };
 
   const handleEliminar = async (id) => {
     const chofer = choferes.find(c => c.id === id);
-    
+
     if (!window.confirm(`¿Estás seguro de eliminar a ${chofer.nombre} ${chofer.apellido}? Esta acción no se puede deshacer.`)) {
       return;
     }
 
-    setLoading(true);
-    setError(null);
     try {
       await eliminarChofer(id);
       setSuccess('Chofer eliminado correctamente');
-      await cargarChoferes();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -233,9 +198,9 @@ const GestionChoferes = () => {
       </div>
 
       {/* Mensajes */}
-      {error && (
+      {(error || formError) && (
         <div className="mb-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
-          {error}
+          {error || formError}
         </div>
       )}
 
@@ -434,7 +399,7 @@ const GestionChoferes = () => {
             {choferesFiltrados.length} {choferesFiltrados.length === 1 ? 'Chofer' : 'Choferes'}
           </h2>
           <button
-            onClick={cargarChoferes}
+            onClick={reload}
             disabled={loading}
             className="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-60"
           >
