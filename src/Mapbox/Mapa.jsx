@@ -187,7 +187,7 @@ function Mapa() {
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-[calc(100vh-11rem)] min-h-[420px]">
       {isLoading && (
         <div style={{ padding: '20px', textAlign: 'center' }}>
           <p>Cargando mapa...</p>

@@ -1,10 +1,51 @@
 @import "tailwindcss";
-@import url();@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Montserrat:wght@400;500&display=swap');
 
-html, body, #root {
+/* =============================================================================
+   Tokens de diseño — Tailwind v4 (@theme)
+   Modo "Operate": grafito técnico de bajo deslumbramiento + acento ámbar
+   funcional. Sin gradientes decorativos. Usar mediante var(--token).
+   ============================================================================= */
+@theme static {
+  /* Superficies */
+  --canvas: #0E1116;   /* fondo de aplicación */
+  --surface: #161A21;  /* tarjetas / paneles / nav */
+  --raised: #1F2530;   /* filas hover / controles elevados */
+  --line: #2A313C;     /* bordes hairline (separadores, estructura) */
+  --line-strong: #6E7684; /* bordes de controles interactivos (>= 3:1) */
+
+  /* Texto */
+  --text: #E8ECF1;      /* primario */
+  --text-mute: #A7B0BC; /* secundario (>= 4.5:1) */
+  --text-faint: #6E7684;/* metadatos no esenciales */
+
+  /* Acento funcional */
+  --signal: #E8A13A;
+
+  /* Estados */
+  --ok: #37B26A;
+  --warn: #E8A13A;
+  --danger: #E05353;
+
+  /* Tipografía */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
   height: 100%;
-  margin: 0; /* elimina el margen por defecto que genera la franja */
-  background: linear-gradient(135deg, #0f1724 0%, #0b1220 100%); /* coincide con tu gradiente */
+  margin: 0;
+}
+
+body {
+  background-color: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

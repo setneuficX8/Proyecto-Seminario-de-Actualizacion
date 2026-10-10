@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRutas } from '@/hooks/useRutas';
+import StatusDot from '@/components/ui/StatusDot';
+import { Table, Th, Tr, Td, TableMessage } from '@/components/ui/Table';
+import { PencilIcon, TrashIcon, PowerIcon, CloseIcon } from '@/components/ui/icons';
+import {
+  labelClass,
+  inputClass,
+  buttonPrimaryClass,
+  buttonGhostClass,
+  iconButtonClass,
+  alertErrorClass,
+  alertSuccessClass
+} from '@/components/ui/tokens';
 
 const GestionRutas = () => {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -24,34 +36,30 @@ const GestionRutas = () => {
   const [busqueda, setBusqueda] = useState('');
 
   const handleEdit = (ruta) => {
-    setEditando({
-      id: ruta.id,
-      nombre_ruta: ruta.nombre_ruta,
-      activo: ruta.activo
-    });
+    setEditando({ id: ruta.id, nombre_ruta: ruta.nombre_ruta, activo: ruta.activo });
     limpiarError();
     setFormError(null);
     setSuccess(null);
   };
 
-  const handleCancelarEdicion = () => {
+  const cerrarModal = () => {
     setEditando(null);
     limpiarError();
     setFormError(null);
   };
 
-  const handleGuardarEdicion = async () => {
+  const handleGuardarEdicion = async (e) => {
+    e.preventDefault();
     if (!editando.nombre_ruta.trim()) {
       setFormError('El nombre de la ruta es requerido');
       return;
     }
-
     try {
       await actualizarRuta(editando.id, {
         nombre_ruta: editando.nombre_ruta,
         activo: editando.activo
       });
-      setSuccess('Ruta actualizada correctamente');
+      setSuccess('Ruta actualizada');
       setEditando(null);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -59,327 +67,218 @@ const GestionRutas = () => {
     }
   };
 
-  const handleDesactivar = async (id, nombreRuta) => {
-    if (!window.confirm(`¿Estás seguro de desactivar la ruta "${nombreRuta}"?`)) {
-      return;
-    }
-
+  const handleDesactivar = async (ruta) => {
+    if (!window.confirm(`¿Desactivar la ruta "${ruta.nombre_ruta}"?`)) return;
     try {
-      await desactivarRuta(id);
-      setSuccess('Ruta desactivada correctamente');
+      await desactivarRuta(ruta.id);
+      setSuccess('Ruta desactivada');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      // El hook ya deja el mensaje disponible en `error`.
-    }
+    } catch (err) { /* error del hook */ }
   };
 
-  const handleReactivar = async (id, nombreRuta) => {
-    if (!window.confirm(`¿Deseas reactivar la ruta "${nombreRuta}"?`)) {
-      return;
-    }
-
+  const handleReactivar = async (ruta) => {
+    if (!window.confirm(`¿Reactivar la ruta "${ruta.nombre_ruta}"?`)) return;
     try {
-      await reactivarRuta(id);
-      setSuccess('Ruta reactivada correctamente');
+      await reactivarRuta(ruta.id);
+      setSuccess('Ruta reactivada');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      // El hook ya deja el mensaje disponible en `error`.
-    }
+    } catch (err) { /* error del hook */ }
   };
 
-  const handleEliminar = async (id, nombreRuta) => {
-    if (!window.confirm(`¿Estás seguro de ELIMINAR PERMANENTEMENTE la ruta "${nombreRuta}"?\n\nEsta acción no se puede deshacer.`)) {
-      return;
-    }
-
+  const handleEliminar = async (ruta) => {
+    if (!window.confirm(`¿Eliminar permanentemente la ruta "${ruta.nombre_ruta}"? Esta acción no se puede deshacer.`)) return;
     try {
-      await eliminarRuta(id);
-      setSuccess('Ruta eliminada correctamente');
+      await eliminarRuta(ruta.id);
+      setSuccess('Ruta eliminada');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      // El hook ya deja el mensaje disponible en `error`.
-    }
+    } catch (err) { /* error del hook */ }
   };
 
   const rutasFiltradas = rutas.filter(ruta => {
-    const coincideBusqueda = ruta.nombre_ruta
-      .toLowerCase()
-      .includes(busqueda.toLowerCase());
-
+    const coincideBusqueda = ruta.nombre_ruta.toLowerCase().includes(busqueda.toLowerCase());
     const coincideEstado =
       filtroEstado === 'todos' ||
       (filtroEstado === 'activas' && ruta.activo) ||
       (filtroEstado === 'inactivas' && !ruta.activo);
-
     return coincideBusqueda && coincideEstado;
   });
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-white">Cargando...</div>
+      <div className="flex min-h-[300px] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--line)] border-t-[var(--signal)]" aria-hidden="true" />
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="p-5 max-w-4xl mx-auto">
-        <div className="bg-red-900/30 border border-red-500 rounded-lg p-6 text-center">
-          <h2 className="text-2xl font-bold text-red-400 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-300">
-            No tienes permisos para acceder a esta sección. Por favor, contacta al administrador.
-          </p>
-        </div>
+      <div className="rounded-md border border-[var(--danger)] bg-[var(--danger)]/10 p-6 text-center">
+        <h2 className="text-base font-semibold text-[var(--text)]">Acceso denegado</h2>
+        <p className="mt-1 text-sm text-[var(--text-mute)]">
+          No tienes permisos para acceder a esta sección.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2 font-montserrat">Gestión de Rutas</h1>
-        <p className="text-gray-300">Administra las rutas de recolección</p>
-      </div>
+    <div>
+      <header className="mb-6">
+        <h1 className="text-xl font-semibold text-[var(--text)]">Rutas</h1>
+        <p className="mt-1 text-sm text-[var(--text-mute)]">Administra las rutas de recolección</p>
+      </header>
 
-      {/* Mensajes de éxito y error */}
       {(error || formError) && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-          {error || formError}
-        </div>
+        <div className={alertErrorClass} role="alert">{error || formError}</div>
       )}
 
       {success && (
-        <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-          {success}
+        <div className={alertSuccessClass}>
+          <span>{success}</span>
+          <button type="button" onClick={() => setSuccess(null)} aria-label="Cerrar aviso" className={iconButtonClass}>
+            <CloseIcon />
+          </button>
         </div>
       )}
 
-      {/* Controles superiores */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg shadow-lg p-6 mb-6 border border-sky-400">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {/* Búsqueda */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Buscar ruta
-            </label>
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Nombre de ruta..."
-              className="w-full px-4 py-2 border border-gray-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-transparent placeholder-gray-400"
-            />
-          </div>
-
-          {/* Filtro de estado */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Estado
-            </label>
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-transparent"
-            >
-              <option value="todos">Todas</option>
-              <option value="activas">Activas</option>
-              <option value="inactivas">Inactivas</option>
-            </select>
-          </div>
+      {/* Barra de filtros */}
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="min-w-[220px]">
+          <label htmlFor="rutas-buscar" className={labelClass}>Buscar</label>
+          <input
+            id="rutas-buscar"
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Nombre de ruta…"
+            className={inputClass}
+          />
         </div>
-
-        <div className="text-sm text-gray-300">
-          Total: {rutasFiltradas.length} ruta{rutasFiltradas.length !== 1 ? 's' : ''}
+        <div>
+          <label htmlFor="rutas-estado" className={labelClass}>Estado</label>
+          <select
+            id="rutas-estado"
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+            className={inputClass}
+          >
+            <option value="todos">Todas</option>
+            <option value="activas">Activas</option>
+            <option value="inactivas">Inactivas</option>
+          </select>
         </div>
+        <p className="ml-auto text-xs text-[var(--text-faint)]">
+          {rutasFiltradas.length} ruta{rutasFiltradas.length !== 1 ? 's' : ''}
+        </p>
       </div>
 
-      {/* Tabla de rutas */}
-      {loading && !editando ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-xl text-gray-300">Cargando rutas...</div>
-        </div>
-      ) : rutasFiltradas.length === 0 ? (
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg shadow-lg p-12 text-center border border-sky-400">
-          <p className="text-gray-300 text-lg mb-4">No hay rutas disponibles</p>
-          <p className="text-gray-400 text-sm">
-            {busqueda || filtroEstado !== 'todos'
-              ? 'Intenta ajustar los filtros de búsqueda'
-              : 'Crea rutas desde el mapa de visualización'}
-          </p>
-        </div>
+      {loading && rutas.length === 0 ? (
+        <div className="py-12 text-center text-sm text-[var(--text-mute)]">Cargando rutas…</div>
       ) : (
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-lg shadow-lg overflow-hidden border border-sky-400">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-700">
-              <thead className="bg-slate-900/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nombre de Ruta
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Origen
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Asignaciones
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-slate-800/50 divide-y divide-gray-700">
-                {rutasFiltradas.map((ruta) => (
-                  <tr key={ruta.id} className="hover:bg-slate-700/50 transition-colors">
-                    {editando && editando.id === ruta.id ? (
-                      // Modo edición
-                      <>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                          {ruta.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <input
-                            type="text"
-                            value={editando.nombre_ruta}
-                            onChange={(e) => setEditando({ ...editando, nombre_ruta: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-transparent placeholder-gray-400"
-                            placeholder="Nombre de la ruta"
-                          />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            ruta.ruta_id_api
-                              ? 'bg-sky-900/50 text-sky-300 border border-sky-600'
-                              : 'bg-gray-700 text-gray-300 border border-gray-600'
-                          }`}>
-                            {ruta.ruta_id_api ? 'API Externa' : 'Solo Local'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                          {ruta.cantidad_asignaciones_activas || 0}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <select
-                            value={editando.activo}
-                            onChange={(e) => setEditando({ ...editando, activo: e.target.value === 'true' })}
-                            className="px-3 py-2 border border-gray-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-sky-400 focus:border-transparent"
-                          >
-                            <option value="true">Activa</option>
-                            <option value="false">Inactiva</option>
-                          </select>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={handleGuardarEdicion}
-                            disabled={actionLoading}
-                            className="text-green-400 hover:text-green-300 mr-3 disabled:text-gray-600"
-                          >
-                            Guardar
-                          </button>
-                          <button
-                            onClick={handleCancelarEdicion}
-                            disabled={actionLoading}
-                            className="text-gray-400 hover:text-gray-300 disabled:text-gray-600"
-                          >
-                            Cancelar
-                          </button>
-                        </td>
-                      </>
-                    ) : (
-                      // Modo vista
-                      <>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                          {ruta.id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-white">
-                            {ruta.nombre_ruta}
-                          </div>
-                          {ruta.ruta_id_api && (
-                            <div className="text-xs text-gray-400">
-                              API ID: {ruta.ruta_id_api}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            ruta.ruta_id_api
-                              ? 'bg-sky-900/50 text-sky-300 border border-sky-600'
-                              : 'bg-gray-700 text-gray-300 border border-gray-600'
-                          }`}>
-                            {ruta.ruta_id_api ? 'API Externa' : 'Solo Local'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-sm ${
-                            ruta.cantidad_asignaciones_activas > 0
-                              ? 'text-orange-400 font-semibold'
-                              : 'text-gray-400'
-                          }`}>
-                            {ruta.cantidad_asignaciones_activas || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            ruta.activo
-                              ? 'bg-green-900/50 text-green-300 border border-green-600'
-                              : 'bg-red-900/50 text-red-300 border border-red-600'
-                          }`}>
-                            {ruta.activo ? 'Activa' : 'Inactiva'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleEdit(ruta)}
-                            className="text-sky-400 hover:text-sky-300 mr-3 transition-colors"
-                          >
-                            Editar
-                          </button>
-                          {ruta.activo ? (
-                            <button
-                              onClick={() => handleDesactivar(ruta.id, ruta.nombre_ruta)}
-                              className="text-yellow-400 hover:text-yellow-300 mr-3 transition-colors"
-                            >
-                              Desactivar
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleReactivar(ruta.id, ruta.nombre_ruta)}
-                              className="text-green-400 hover:text-green-300 mr-3 transition-colors"
-                            >
-                              Reactivar
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleEliminar(ruta.id, ruta.nombre_ruta)}
-                            disabled={ruta.cantidad_asignaciones_activas > 0}
-                            className="text-red-400 hover:text-red-300 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
-                            title={
-                              ruta.cantidad_asignaciones_activas > 0
-                                ? 'No se puede eliminar una ruta con asignaciones activas'
-                                : 'Eliminar ruta'
-                            }
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <Table>
+          <thead>
+            <tr>
+              <Th className="w-16">ID</Th>
+              <Th>Nombre</Th>
+              <Th>Origen</Th>
+              <Th align="right">Asignaciones</Th>
+              <Th>Estado</Th>
+              <Th align="right">Acciones</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {rutasFiltradas.length === 0 ? (
+              <TableMessage colSpan={6}>No hay rutas que coincidan con los filtros.</TableMessage>
+            ) : (
+              rutasFiltradas.map((ruta) => (
+                <Tr key={ruta.id}>
+                  <Td className="font-mono text-xs tabular-nums text-[var(--text-faint)]">{ruta.id}</Td>
+                  <Td className="font-medium text-[var(--text)]">{ruta.nombre_ruta}</Td>
+                  <Td className="text-[var(--text-mute)]">{ruta.ruta_id_api ? 'API externa' : 'Local'}</Td>
+                  <Td className="text-right font-mono tabular-nums text-[var(--text)]">
+                    {ruta.cantidad_asignaciones_activas || 0}
+                  </Td>
+                  <Td>
+                    <StatusDot tone={ruta.activo ? 'ok' : 'danger'} label={ruta.activo ? 'Activa' : 'Inactiva'} />
+                  </Td>
+                  <Td className="py-0 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button type="button" onClick={() => handleEdit(ruta)} className={iconButtonClass} aria-label="Editar ruta" title="Editar">
+                        <PencilIcon />
+                      </button>
+                      {ruta.activo ? (
+                        <button type="button" onClick={() => handleDesactivar(ruta)} className={iconButtonClass} aria-label="Desactivar ruta" title="Desactivar">
+                          <PowerIcon />
+                        </button>
+                      ) : (
+                        <button type="button" onClick={() => handleReactivar(ruta)} className={iconButtonClass} aria-label="Reactivar ruta" title="Reactivar">
+                          <PowerIcon />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleEliminar(ruta)}
+                        disabled={ruta.cantidad_asignaciones_activas > 0}
+                        className={iconButtonClass}
+                        aria-label="Eliminar ruta"
+                        title={ruta.cantidad_asignaciones_activas > 0 ? 'No se puede eliminar una ruta con asignaciones activas' : 'Eliminar'}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </tbody>
+        </Table>
+      )}
+
+      {/* Modal de edición */}
+      {editando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="ruta-modal-title">
+          <div className="w-full max-w-md rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 id="ruta-modal-title" className="text-base font-semibold text-[var(--text)]">Editar ruta</h2>
+              <button type="button" onClick={cerrarModal} aria-label="Cerrar" className={iconButtonClass}>
+                <CloseIcon />
+              </button>
+            </div>
+            <form onSubmit={handleGuardarEdicion} className="space-y-4">
+              <div>
+                <label htmlFor="ruta-nombre" className={labelClass}>Nombre de la ruta</label>
+                <input
+                  id="ruta-nombre"
+                  type="text"
+                  value={editando.nombre_ruta}
+                  onChange={(e) => setEditando({ ...editando, nombre_ruta: e.target.value })}
+                  className={inputClass}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label htmlFor="ruta-activo" className={labelClass}>Estado</label>
+                <select
+                  id="ruta-activo"
+                  value={editando.activo}
+                  onChange={(e) => setEditando({ ...editando, activo: e.target.value === 'true' })}
+                  className={inputClass}
+                >
+                  <option value="true">Activa</option>
+                  <option value="false">Inactiva</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <button type="button" onClick={cerrarModal} className={buttonGhostClass}>Cancelar</button>
+                <button type="submit" disabled={actionLoading} className={buttonPrimaryClass}>
+                  {actionLoading ? 'Guardando…' : 'Guardar'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
-
-
     </div>
   );
 };

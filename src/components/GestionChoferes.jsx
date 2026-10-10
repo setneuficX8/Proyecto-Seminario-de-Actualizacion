@@ -1,6 +1,27 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChoferes } from '@/hooks/useChoferes';
+import StatusDot from '@/components/ui/StatusDot';
+import { Table, Th, Tr, Td, TableMessage } from '@/components/ui/Table';
+import { PencilIcon, TrashIcon, PlusIcon, CloseIcon } from '@/components/ui/icons';
+import {
+  labelClass,
+  inputClass,
+  buttonPrimaryClass,
+  buttonGhostClass,
+  iconButtonClass,
+  alertErrorClass,
+  alertSuccessClass
+} from '@/components/ui/tokens';
+
+const formDataInicial = () => ({
+  nombre: '',
+  apellido: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  activo: true
+});
 
 const GestionChoferes = () => {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -8,7 +29,6 @@ const GestionChoferes = () => {
     choferes,
     loading,
     error,
-    reload,
     crearChofer,
     actualizarChofer,
     eliminarChofer
@@ -21,75 +41,63 @@ const GestionChoferes = () => {
   const [editando, setEditando] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
-  const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    activo: true
-  });
+  const [formData, setFormData] = useState(formDataInicial());
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const abrirCrear = () => {
+    setEditando(null);
+    setFormData(formDataInicial());
+    setFormError(null);
+    setSuccess(null);
+    setMostrarFormulario(true);
+  };
+
+  const cerrarFormulario = () => {
+    setMostrarFormulario(false);
+    setEditando(null);
+    setFormData(formDataInicial());
+    setFormError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
     setSuccess(null);
-
     try {
       if (editando) {
-        // Modo edición: NO se actualiza password
         await actualizarChofer(editando, {
           nombre: formData.nombre,
           apellido: formData.apellido,
           email: formData.email,
           activo: formData.activo
         });
-        setSuccess('Chofer actualizado correctamente');
-        setEditando(null);
+        setSuccess('Chofer actualizado');
       } else {
-        // Modo creación: Validar passwords (validación de UI)
         if (!formData.password || !formData.confirmPassword) {
           setFormError('La contraseña es requerida');
           return;
         }
-
         if (formData.password.length < 6) {
           setFormError('La contraseña debe tener al menos 6 caracteres');
           return;
         }
-
         if (formData.password !== formData.confirmPassword) {
           setFormError('Las contraseñas no coinciden');
           return;
         }
-
         const result = await crearChofer({
           nombre: formData.nombre,
           apellido: formData.apellido,
           email: formData.email,
           password: formData.password
         });
-
-        setSuccess(result.message || 'Chofer creado exitosamente');
+        setSuccess(result.message || 'Chofer creado');
       }
-
-      setFormData({
-        nombre: '',
-        apellido: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        activo: true
-      });
-      setMostrarFormulario(false);
+      cerrarFormulario();
       setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
       // El hook ya deja el mensaje disponible en `error`.
@@ -109,376 +117,218 @@ const GestionChoferes = () => {
     setFormError(null);
     setSuccess(null);
     setMostrarFormulario(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCancelar = () => {
-    setEditando(null);
-    setMostrarFormulario(false);
-    setFormData({
-      nombre: '',
-      apellido: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      activo: true
-    });
-    setFormError(null);
-    setSuccess(null);
-  };
-
-  const handleEliminar = async (id) => {
-    const chofer = choferes.find(c => c.id === id);
-
-    if (!window.confirm(`¿Estás seguro de eliminar a ${chofer.nombre} ${chofer.apellido}? Esta acción no se puede deshacer.`)) {
-      return;
-    }
-
+  const handleEliminar = async (chofer) => {
+    if (!window.confirm(`¿Eliminar a ${chofer.nombre} ${chofer.apellido}? Esta acción no se puede deshacer.`)) return;
     try {
-      await eliminarChofer(id);
-      setSuccess('Chofer eliminado correctamente');
+      await eliminarChofer(chofer.id);
+      setSuccess('Chofer eliminado');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      // El hook ya deja el mensaje disponible en `error`.
-    }
+    } catch (err) { /* error del hook */ }
   };
 
   const choferesFiltrados = choferes.filter(chofer => {
-    if (filtroEstado !== 'todos') {
-      if (filtroEstado === 'activos' && !chofer.activo) return false;
-      if (filtroEstado === 'inactivos' && chofer.activo) return false;
-    }
-
+    if (filtroEstado === 'activos' && !chofer.activo) return false;
+    if (filtroEstado === 'inactivos' && chofer.activo) return false;
     if (busqueda) {
-      const searchLower = busqueda.toLowerCase();
+      const q = busqueda.toLowerCase();
       return (
-        chofer.nombre?.toLowerCase().includes(searchLower) ||
-        chofer.apellido?.toLowerCase().includes(searchLower) ||
-        chofer.email?.toLowerCase().includes(searchLower)
+        chofer.nombre?.toLowerCase().includes(q) ||
+        chofer.apellido?.toLowerCase().includes(q) ||
+        chofer.email?.toLowerCase().includes(q)
       );
     }
-
     return true;
   });
 
   if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-sky-400"></div>
-        <div className="text-xl font-semibold text-white font-montserrat">
-          Verificando permisos...
-        </div>
+      <div className="flex min-h-[300px] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--line)] border-t-[var(--signal)]" aria-hidden="true" />
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="p-5 max-w-4xl mx-auto">
-        <div className="bg-red-900/30 border border-red-500 rounded-lg p-6 text-center">
-          <h2 className="text-2xl font-bold text-red-400 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-300">
-            No tienes permisos para acceder a esta sección. Por favor, contacta al administrador.
-          </p>
-        </div>
+      <div className="rounded-md border border-[var(--danger)] bg-[var(--danger)]/10 p-6 text-center">
+        <h2 className="text-base font-semibold text-[var(--text)]">Acceso denegado</h2>
+        <p className="mt-1 text-sm text-[var(--text-mute)]">No tienes permisos para acceder a esta sección.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-5 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white font-montserrat mb-2">
-          Gestión de Choferes
-        </h1>
-        <p className="text-gray-300">
-          Administra los choferes del sistema y envía invitaciones de registro
-        </p>
-      </div>
-
-      {/* Mensajes */}
-      {(error || formError) && (
-        <div className="mb-4 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
-          {error || formError}
+    <div>
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold text-[var(--text)]">Choferes</h1>
+          <p className="mt-1 text-sm text-[var(--text-mute)]">Personal del sistema y su disponibilidad</p>
         </div>
+        <button type="button" onClick={abrirCrear} className={buttonPrimaryClass}>
+          <PlusIcon />
+          Nuevo chofer
+        </button>
+      </header>
+
+      {(error || formError) && (
+        <div className={alertErrorClass} role="alert">{error || formError}</div>
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-500/20 border border-green-500 rounded-lg text-green-200 flex justify-between items-center">
+        <div className={alertSuccessClass}>
           <span>{success}</span>
-          <button
-            type="button"
-            onClick={() => setSuccess(null)}
-            className="text-green-400 hover:text-green-300 font-bold"
-          >
-            ✕
+          <button type="button" onClick={() => setSuccess(null)} aria-label="Cerrar aviso" className={iconButtonClass}>
+            <CloseIcon />
           </button>
         </div>
       )}
 
-      {/* Botón para mostrar formulario */}
-      <div className="mb-6">
-        <button
-          onClick={() => setMostrarFormulario(!mostrarFormulario)}
-          className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md font-semibold flex items-center gap-2"
-        >
-          {mostrarFormulario ? ' Cancelar' : ' Nuevo Chofer'}
-        </button>
+      {/* Barra de filtros */}
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="min-w-[220px]">
+          <label htmlFor="cho-buscar" className={labelClass}>Buscar</label>
+          <input
+            id="cho-buscar"
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Nombre, apellido o email…"
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="cho-estado" className={labelClass}>Estado</label>
+          <select id="cho-estado" value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className={inputClass}>
+            <option value="todos">Todos</option>
+            <option value="activos">Activos</option>
+            <option value="inactivos">Inactivos</option>
+          </select>
+        </div>
+        <p className="ml-auto text-xs text-[var(--text-faint)]">
+          {choferesFiltrados.length} chofer{choferesFiltrados.length !== 1 ? 'es' : ''}
+        </p>
       </div>
 
-      {/* Formulario */}
+      {loading && choferes.length === 0 ? (
+        <div className="py-12 text-center text-sm text-[var(--text-mute)]">Cargando choferes…</div>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th className="w-16">ID</Th>
+              <Th>Nombre</Th>
+              <Th>Email</Th>
+              <Th>Estado</Th>
+              <Th>Disponibilidad</Th>
+              <Th align="right">Acciones</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {choferesFiltrados.length === 0 ? (
+              <TableMessage colSpan={6}>No hay choferes que coincidan con los filtros.</TableMessage>
+            ) : (
+              choferesFiltrados.map((chofer) => (
+                <Tr key={chofer.id}>
+                  <Td className="font-mono text-xs tabular-nums text-[var(--text-faint)]">{chofer.id}</Td>
+                  <Td className="font-medium text-[var(--text)]">{chofer.nombre} {chofer.apellido}</Td>
+                  <Td className="font-mono text-xs text-[var(--text-mute)]">{chofer.email}</Td>
+                  <Td>
+                    <StatusDot tone={chofer.activo ? 'ok' : 'danger'} label={chofer.activo ? 'Activo' : 'Inactivo'} />
+                  </Td>
+                  <Td>
+                    <StatusDot
+                      tone={chofer.activo ? (chofer.disponible ? 'ok' : 'warn') : 'idle'}
+                      label={chofer.activo ? (chofer.disponible ? 'Disponible' : 'Ocupado') : '—'}
+                    />
+                  </Td>
+                  <Td className="py-0 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button type="button" onClick={() => handleEdit(chofer)} className={iconButtonClass} aria-label="Editar chofer" title="Editar">
+                        <PencilIcon />
+                      </button>
+                      <button type="button" onClick={() => handleEliminar(chofer)} className={iconButtonClass} aria-label="Eliminar chofer" title="Eliminar">
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </tbody>
+        </Table>
+      )}
+
+      {/* Modal de creación / edición */}
       {mostrarFormulario && (
-        <div className={`mb-8 p-6 border rounded-lg shadow-md backdrop-blur-sm ${
-          editando ? 'border-yellow-500 bg-yellow-900/30' : 'border-sky-400 bg-slate-800/50'
-        }`}>
-          <h2 className="text-xl font-semibold mb-4 text-white font-montserrat">
-            {editando ? ' Editar Chofer' : ' Nuevo Chofer'}
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Nombre <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="nombre"
-                  placeholder="Juan"
-                  value={formData.nombre}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="cho-modal-title">
+          <div className="w-full max-w-md rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 id="cho-modal-title" className="text-base font-semibold text-[var(--text)]">
+                {editando ? 'Editar chofer' : 'Nuevo chofer'}
+              </h2>
+              <button type="button" onClick={cerrarFormulario} aria-label="Cerrar" className={iconButtonClass}>
+                <CloseIcon />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="cho-nombre" className={labelClass}>Nombre</label>
+                  <input id="cho-nombre" name="nombre" type="text" value={formData.nombre} onChange={handleInputChange} required className={inputClass} />
+                </div>
+                <div>
+                  <label htmlFor="cho-apellido" className={labelClass}>Apellido</label>
+                  <input id="cho-apellido" name="apellido" type="text" value={formData.apellido} onChange={handleInputChange} required className={inputClass} />
+                </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Apellido <span className="text-red-400">*</span>
-                </label>
+                <label htmlFor="cho-email" className={labelClass}>Email</label>
                 <input
-                  type="text"
-                  name="apellido"
-                  placeholder="Pérez"
-                  value={formData.apellido}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Email <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="email"
+                  id="cho-email"
                   name="email"
-                  placeholder="chofer@ejemplo.com"
+                  type="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  disabled={editando}
-                  className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={Boolean(editando)}
+                  spellCheck={false}
+                  className={`${inputClass} disabled:opacity-60`}
                 />
-                {editando && (
-                  <p className="text-xs text-gray-400 mt-1">El email no puede modificarse</p>
-                )}
+                {editando && <p className="mt-1 text-xs text-[var(--text-faint)]">El email no puede modificarse.</p>}
               </div>
 
-              {/* Campos de contraseña - Solo en modo creación */}
               {!editando && (
-                <>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Contraseña <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Mínimo 6 caracteres"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                    />
+                    <label htmlFor="cho-password" className={labelClass}>Contraseña</label>
+                    <input id="cho-password" name="password" type="password" value={formData.password} onChange={handleInputChange} required className={inputClass} placeholder="Mínimo 6 caracteres" />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Confirmar Contraseña <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      placeholder="Repite la contraseña"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full p-2.5 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                    />
+                    <label htmlFor="cho-confirm" className={labelClass}>Confirmar contraseña</label>
+                    <input id="cho-confirm" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleInputChange} required className={inputClass} />
                   </div>
-                </>
+                </div>
               )}
 
               {editando && (
-                <div className="flex items-center">
-                  <label className="flex items-center gap-2 text-gray-200 font-medium cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="activo"
-                      checked={formData.activo}
-                      onChange={handleInputChange}
-                      className="w-4 h-4 text-sky-600 rounded focus:ring-sky-500"
-                    />
-                    Chofer activo
-                  </label>
+                <div className="flex items-center gap-2">
+                  <input id="cho-activo" name="activo" type="checkbox" checked={formData.activo} onChange={handleInputChange} className="h-4 w-4 rounded border-[var(--line-strong)] bg-[var(--raised)] accent-[var(--signal)]" />
+                  <label htmlFor="cho-activo" className="text-sm text-[var(--text)]">Chofer activo</label>
                 </div>
               )}
-            </div>
 
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={loading}
-                className={`py-2.5 px-6 text-white rounded-md font-medium transition ${
-                  editando
-                    ? 'bg-yellow-600 hover:bg-yellow-700'
-                    : 'bg-sky-600 hover:bg-sky-700'
-                } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
-              >
-                {loading ? 'Guardando...' : editando ? '💾 Actualizar' : ' Crear Chofer'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCancelar}
-                disabled={loading}
-                className="py-2.5 px-6 bg-gray-600 text-white rounded-md font-medium hover:bg-gray-700 transition disabled:opacity-60"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-end gap-2 pt-1">
+                <button type="button" onClick={cerrarFormulario} className={buttonGhostClass}>Cancelar</button>
+                <button type="submit" disabled={loading} className={buttonPrimaryClass}>
+                  {loading ? 'Guardando…' : editando ? 'Guardar cambios' : 'Crear chofer'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
-
-      {/* Filtros y búsqueda */}
-      <div className="mb-6 p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Buscar</label>
-            <input
-              type="text"
-              placeholder="Nombre, apellido o email..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full p-2 border border-gray-600 rounded-md bg-slate-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-sky-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Estado</label>
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full p-2 border border-gray-600 rounded-md bg-slate-700 text-white focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="todos">Todos</option>
-              <option value="activos">Activos</option>
-              <option value="inactivos">Inactivos</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Lista de Choferes */}
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-white font-montserrat">
-            {choferesFiltrados.length} {choferesFiltrados.length === 1 ? 'Chofer' : 'Choferes'}
-          </h2>
-          <button
-            onClick={reload}
-            disabled={loading}
-            className="py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 transition disabled:opacity-60"
-          >
-            {loading ? 'Cargando...' : ' Actualizar'}
-          </button>
-        </div>
-
-        {loading && choferes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-sky-400 mb-4"></div>
-            <p className="text-white italic">Cargando choferes...</p>
-          </div>
-        ) : choferesFiltrados.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">No hay choferes que coincidan con los filtros</p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {choferesFiltrados.map((chofer) => (
-              <div
-                key={chofer.id}
-                className="p-5 border border-slate-700 rounded-lg bg-slate-800/70 shadow-lg hover:border-slate-600 transition"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="text-xl font-semibold text-white mb-1">
-                       {chofer.nombre} {chofer.apellido}
-                    </h3>
-                    <p className="text-gray-300">📧 {chofer.email}</p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      chofer.activo
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                        : 'bg-gray-500/20 text-gray-400 border border-gray-500/50'
-                    }`}>
-                      {chofer.activo ? 'Activo' : 'Inactivo'}
-                    </span>
-                    
-                    {/* Badge de disponibilidad basado en asignaciones activas */}
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      chofer.disponible
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                        : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50'
-                    }`}>
-                      {chofer.disponible ? 'Disponible' : 'Ocupado'}
-                    </span>
-                  </div>
-                </div>
-
-                {chofer.updated_at && (
-                  <div className="text-sm text-gray-400 mb-4">
-                    Última actualización: {new Date(chofer.updated_at).toLocaleDateString('es-ES')}
-                  </div>
-                )}
-
-                <div className="flex gap-2 mt-4 pt-4 border-t border-slate-700">
-                  <button
-                    onClick={() => handleEdit(chofer)}
-                    disabled={loading}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                     Editar
-                  </button>
-
-                  <button
-                    onClick={() => handleEliminar(chofer.id)}
-                    disabled={loading}
-                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                     Eliminar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

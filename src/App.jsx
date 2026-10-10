@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import { lazy, Suspense, useState, useEffect } from 'react'
 import useAuth from './hooks/useAuth';
 import RoleRoute from './components/RoleRoute';
@@ -38,133 +38,82 @@ function AppContent() {
     }
   }, [user, loading, navigate]);
 
+  const navItems = [
+    { to: '/', label: 'Inicio', end: true },
+    { to: '/mapa', label: 'Mapa' },
+    { to: '/gestion-vehiculos', label: 'Vehículos' },
+    { to: '/gestion-asignaciones', label: 'Asignaciones' },
+    ...(role !== 'chofer'
+      ? [
+          { to: '/gestion-choferes', label: 'Choferes' },
+          { to: '/gestion-rutas', label: 'Rutas' },
+          { to: '/RegisterSupabase', label: 'Registro' },
+        ]
+      : []),
+  ];
+
+  const navLinkClass = ({ isActive }) =>
+    [
+      'inline-flex min-h-[44px] items-center rounded-md px-3.5 text-sm font-medium transition-colors',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]',
+      isActive
+        ? 'bg-[var(--raised)] text-[var(--text)]'
+        : 'text-[var(--text-mute)] hover:bg-[var(--raised)] hover:text-[var(--text)]',
+    ].join(' ');
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-900 font-poppins">
-      {/* Header de Bienvenida */}
-      <div className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md text-white py-6 px-4 shadow-lg border-b border-white/10">
-        <h1 className="mt-0 text-2xl md:text-4xl lg:text-5xl font-bold text-center font-montserrat tracking-wide drop-shadow-lg">
-          BIENVENID@ A TU SISTEMA DE RECOLECCIÓN
-        </h1>
-      </div>
+    <div className="min-h-screen bg-[var(--canvas)] text-[var(--text)]">
+      {/* Barra de navegación (solo visible cuando hay sesión iniciada) */}
+      {!loading && user && (
+        <nav className="border-b border-[var(--line)] bg-[var(--surface)]">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
+              <span className="mr-1 whitespace-nowrap text-sm font-semibold tracking-tight text-[var(--text)]">
+                Recolección
+              </span>
 
-      {/* Navegación (solo visible cuando hay sesión iniciada) */}
-      { !loading && user && (
-      <nav className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md text-white shadow-md border-t-4 border-sky-400">
-        <div className="max-w-7xl mx-auto px-4">
-          {/* Top row: brand + hamburger (mobile) */}
-          <div className="flex items-center justify-between py-3 md:hidden">
-            <div className="text-white font-semibold text-lg">Menu</div>
-            <button
-              aria-label="Toggle navigation menu"
-              onClick={() => setIsMenuOpen(prev => !prev)}
-              className="text-white focus:outline-none p-2 rounded-md hover:bg-white/5"
-            >
-              {/* Hamburger icon */}
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
+              {/* Hamburguesa (móvil) */}
+              <button
+                type="button"
+                aria-label={isMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+                aria-expanded={isMenuOpen}
+                onClick={() => setIsMenuOpen(prev => !prev)}
+                className="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-md text-[var(--text-mute)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] md:hidden"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  {isMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
 
-          {/* Links: visible on md and up, or on mobile if menu open */}
-          <div className={`${isMenuOpen ? 'block' : 'hidden'} md:block`}>
-            <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-8 py-4">
-            <Link 
-              to="/" 
-              onClick={() => setIsMenuOpen(false)}
-              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
-            >
-              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span className="truncate">Inicio</span>
-              </span>
-            </Link>
-            
-            <Link 
-              to="/mapa" 
-              onClick={() => setIsMenuOpen(false)}
-              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
-            >
-              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span className="truncate">Mapa de Rutas</span>
-              </span>
-            </Link>
-            
-            <Link 
-              to="/gestion-vehiculos" 
-              onClick={() => setIsMenuOpen(false)}
-              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
-            >
-              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span className="truncate">Gestión de Vehículos</span>
-              </span>
-            </Link>
-            
-            <Link 
-              to="/gestion-asignaciones" 
-              onClick={() => setIsMenuOpen(false)}
-              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
-            >
-              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span className="truncate">Asignaciones</span>
-              </span>
-            </Link>
-            
-            {role !== 'chofer' && (
-            <Link 
-              to="/gestion-choferes" 
-              onClick={() => setIsMenuOpen(false)}
-              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
-            >
-              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span className="truncate">Gestión de Choferes</span>
-              </span>
-            </Link>
-            )}
-            
-            {role !== 'chofer' && (
-            <Link 
-              to="/gestion-rutas" 
-              onClick={() => setIsMenuOpen(false)}
-              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
-            >
-              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span className="truncate">Gestión de Rutas</span>
-              </span>
-            </Link>
-            )}
-            
-            {role !== 'chofer' && (
-            <Link
-              to="/RegisterSupabase"
-              onClick={() => setIsMenuOpen(false)}
-              className="group px-6 py-3 text-lg font-semibold text-white hover:text-sky-400 transition-all duration-300 border-b-2 border-transparent hover:border-sky-400 font-montserrat"
-            >
-              <span className="flex items-center min-w-0 space-x-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <span className="truncate">Registro</span>
-              </span>
-            </Link>
-            )}
+              <ul className={`${isMenuOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 md:flex md:w-auto md:flex-row md:items-center md:gap-1`}>
+                {navItems.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      end={item.end}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={navLinkClass}
+                    >
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
       )}
 
       {/* Contenido Principal */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8">
         <Suspense fallback={
-          <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-sky-400"></div>
-            <div className="text-xl font-semibold text-white font-montserrat">
-              Cargando...
-            </div>
-            <div className="text-sm text-gray-300">
-              Por favor, espera un momento
-            </div>
+          <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
+            <div className="h-12 w-12 animate-spin rounded-full border-2 border-[var(--line)] border-t-[var(--signal)]" aria-hidden="true" />
+            <p className="text-sm text-[var(--text-mute)]">Cargando…</p>
           </div>
         }>
           <Routes>
@@ -192,25 +141,20 @@ function AppContent() {
           </Routes>
         </Suspense>
       </main>
-
-      
-    
     </div>
   );
 }
 
-function Footer(){
-  return(
-    <>
-        <footer className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md text-white py-6 border-t border-sky-400">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-sm text-gray-300">
-            {new Date().getFullYear()} Sistema de Recolección. Todos los derechos reservados.
-          </p>
-        </div>
-      </footer>
-    </>
-  )
+function Footer() {
+  return (
+    <footer className="border-t border-[var(--line)] bg-[var(--surface)] py-6">
+      <div className="mx-auto max-w-7xl px-4 text-center">
+        <p className="text-sm text-[var(--text-mute)]">
+          {new Date().getFullYear()} Sistema de Recolección. Todos los derechos reservados.
+        </p>
+      </div>
+    </footer>
+  );
 }
 
 function App() {
