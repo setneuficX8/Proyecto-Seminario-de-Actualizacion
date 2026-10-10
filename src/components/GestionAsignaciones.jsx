@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import {getAsignaciones,getAsignacionesActivas,createAsignacion,cambiarEstadoAsignacion,deleteAsignacion,getChoferesDisponibles,getVehiculosDisponibles,getRutasActivas,verificarConflictoHorarioRuta} from '../services/AsignacionesService';
+import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useAsignaciones } from '@/hooks/useAsignaciones';
 
 // Constantes para días de la semana
 const DIAS_SEMANA = [
@@ -18,96 +18,57 @@ const formatearHorario = (diasSemana, horaInicio, horaFin) => {
   if (!diasSemana || diasSemana.length === 0) {
     return 'Sin horario definido';
   }
-  
+
   const diasOrdenados = [...diasSemana].sort((a, b) => a - b);
   const nombresDias = diasOrdenados.map(d => DIAS_SEMANA.find(dia => dia.id === d)?.nombre || '').join(', ');
-  
+
   const formatoHora = (hora) => {
     if (!hora) return '--:--';
     return hora.substring(0, 5); // Mostrar solo HH:MM
   };
-  
+
   return `${nombresDias} · ${formatoHora(horaInicio)}–${formatoHora(horaFin)}`;
 };
 
+const formDataInicial = () => ({
+  chofer_id: '',
+  vehiculo_id: '',
+  ruta_id: '',
+  fecha_inicio: new Date().toISOString().split('T')[0],
+  dias_semana: [],
+  hora_inicio: '08:00',
+  hora_fin: '14:00',
+  observaciones: ''
+});
+
 const GestionAsignaciones = () => {
-  const { isAdmin, isChofer, loading: authLoading, userData } = useAuth();
-  const [asignaciones, setAsignaciones] = useState([]);
-  const [choferes, setChoferes] = useState([]);
-  const [vehiculos, setVehiculos] = useState([]);
-  const [rutas, setRutas] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [filtro, setFiltro] = useState('todas'); // todas, activas, completadas, canceladas
+  const { isAdmin, isChofer, loading: authLoading } = useAuth();
+  const {
+    asignaciones,
+    rutasDisponibles,
+    vehiculosDisponibles,
+    choferesDisponibles,
+    loading,
+    actionLoading,
+    error,
+    reload,
+    crearAsignacion,
+    cambiarEstadoAsignacion,
+    eliminarAsignacion,
+    limpiarError
+  } = useAsignaciones();
+
+  // Estado exclusivamente de UI
+  const [filtro, setFiltro] = useState('todas'); // todas, activas, completada, cancelada
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [formData, setFormData] = useState({
-    chofer_id: '',
-    vehiculo_id: '',
-    ruta_id: '',
-    fecha_inicio: new Date().toISOString().split('T')[0],
-    dias_semana: [],
-    hora_inicio: '08:00',
-    hora_fin: '14:00',
-    observaciones: ''
-  });
+  const [formError, setFormError] = useState(null);
+  const [formData, setFormData] = useState(formDataInicial());
 
-  // Referencia de montaje: evita actualizar estado tras el desmontaje.
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  const cargarDatos = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Cargar asignaciones según filtro
-      let data;
-      if (filtro === 'activas') {
-        data = await getAsignacionesActivas();
-      } else {
-        data = await getAsignaciones();
-        
-        // Aplicar filtro local si no es 'todas'
-        if (filtro !== 'todas') {
-          data = data.filter(a => a.estado === filtro);
-        }
-      }
-      
-      if (!isMountedRef.current) return;
-      setAsignaciones(data);
-
-      // Solo cargar recursos si es admin
-      if (isAdmin) {
-        const [choferesData, vehiculosData, rutasData] = await Promise.all([
-          getChoferesDisponibles(),
-          getVehiculosDisponibles(),
-          getRutasActivas()
-        ]);
-        
-        if (!isMountedRef.current) return;
-        setChoferes(choferesData);
-        setVehiculos(vehiculosData);
-        setRutas(rutasData);
-      }
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      console.error('Error al cargar datos:', err);
-      setError('Error al cargar datos: ' + err.message);
-    } finally {
-      if (isMountedRef.current) setLoading(false);
-    }
-  }, [filtro, isAdmin]);
-
-  useEffect(() => {
-    if (!authLoading) {
-      cargarDatos();
-    }
-  }, [authLoading, cargarDatos]);
+  const toggleFormulario = () => {
+    limpiarError();
+    setFormError(null);
+    setMostrarFormulario(prev => !prev);
+  };
 
   const handleInputChange = (e) => {
     setFormData(prev => ({
@@ -123,7 +84,7 @@ const GestionAsignaciones = () => {
       const nuevosDias = diasActuales.includes(diaId)
         ? diasActuales.filter(d => d !== diaId)
         : [...diasActuales, diaId].sort((a, b) => a - b);
-    
+
       return {
         ...prev,
         dias_semana: nuevosDias
@@ -149,21 +110,21 @@ const GestionAsignaciones = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    
+    setFormError(null);
+
+    // Validaciones de UI
+    if (!formData.dias_semana || formData.dias_semana.length === 0) {
+      setFormError('Debes seleccionar al menos un día de la semana');
+      return;
+    }
+
+    if (formData.hora_inicio >= formData.hora_fin) {
+      setFormError('La hora de fin debe ser posterior a la hora de inicio');
+      return;
+    }
+
     try {
-      // Validar que se hayan seleccionado días
-      if (!formData.dias_semana || formData.dias_semana.length === 0) {
-        throw new Error('Debes seleccionar al menos un día de la semana');
-      }
-      
-      // Validar que hora_fin sea mayor que hora_inicio
-      if (formData.hora_inicio >= formData.hora_fin) {
-        throw new Error('La hora de fin debe ser posterior a la hora de inicio');
-      }
-      
-      await createAsignacion({
+      await crearAsignacion({
         chofer_id: parseInt(formData.chofer_id),
         vehiculo_id: formData.vehiculo_id,
         ruta_id: parseInt(formData.ruta_id),
@@ -173,25 +134,11 @@ const GestionAsignaciones = () => {
         hora_fin: formData.hora_fin,
         observaciones: formData.observaciones
       });
-      
-      // Resetear formulario
-      setFormData({
-        chofer_id: '',
-        vehiculo_id: '',
-        ruta_id: '',
-        fecha_inicio: new Date().toISOString().split('T')[0],
-        dias_semana: [],
-        hora_inicio: '08:00',
-        hora_fin: '14:00',
-        observaciones: ''
-      });
+
+      setFormData(formDataInicial());
       setMostrarFormulario(false);
-      
-      await cargarDatos();
     } catch (err) {
-      setError('Error al crear asignación: ' + err.message);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error` (incluye conflictos).
     }
   };
 
@@ -199,15 +146,11 @@ const GestionAsignaciones = () => {
     if (!window.confirm(`¿Estás seguro de cambiar el estado a "${nuevoEstado}"?`)) {
       return;
     }
-    
-    setLoading(true);
+
     try {
       await cambiarEstadoAsignacion(asignacionId, nuevoEstado);
-      await cargarDatos();
     } catch (err) {
-      setError('Error al cambiar estado: ' + err.message);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -215,17 +158,17 @@ const GestionAsignaciones = () => {
     if (!window.confirm('¿Estás seguro de eliminar esta asignación?')) {
       return;
     }
-    
-    setLoading(true);
+
     try {
-      await deleteAsignacion(asignacionId);
-      await cargarDatos();
+      await eliminarAsignacion(asignacionId);
     } catch (err) {
-      setError('Error al eliminar asignación: ' + err.message);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
+
+  const asignacionesFiltradas = filtro === 'todas'
+    ? asignaciones
+    : asignaciones.filter(a => a.estado === filtro);
 
   // Loading de autenticación
   if (authLoading) {
@@ -269,7 +212,7 @@ const GestionAsignaciones = () => {
       {isAdmin && (
         <div className="mb-6">
           <button
-            onClick={() => setMostrarFormulario(!mostrarFormulario)}
+            onClick={toggleFormulario}
             className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md font-semibold flex items-center gap-2"
           >
             {mostrarFormulario ? ' Cancelar' : ' Nueva Asignación'}
@@ -298,7 +241,7 @@ const GestionAsignaciones = () => {
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
                 >
                   <option value="">Seleccionar chofer...</option>
-                  {choferes.map(chofer => (
+                  {choferesDisponibles.map(chofer => (
                     <option key={chofer.id} value={chofer.id}>
                       {chofer.nombre_completo} - {chofer.email}
                     </option>
@@ -319,7 +262,7 @@ const GestionAsignaciones = () => {
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
                 >
                   <option value="">Seleccionar vehículo...</option>
-                  {vehiculos.map(vehiculo => (
+                  {vehiculosDisponibles.map(vehiculo => (
                     <option key={vehiculo.id} value={vehiculo.id}>
                       {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo}
                     </option>
@@ -340,7 +283,7 @@ const GestionAsignaciones = () => {
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
                 >
                   <option value="">Seleccionar ruta...</option>
-                  {rutas.map(ruta => (
+                  {rutasDisponibles.map(ruta => (
                     <option key={ruta.id} value={ruta.id}>
                       {ruta.nombre_ruta}
                     </option>
@@ -368,7 +311,7 @@ const GestionAsignaciones = () => {
             {/* Sección de Horarios */}
             <div className="mt-6 p-4 bg-slate-700/50 rounded-lg border border-slate-600">
               <h3 className="text-lg font-semibold text-white mb-4">📅 Horario de la Asignación</h3>
-              
+
               {/* Días de la semana */}
               <div className="mb-4">
                 <label className="block text-gray-300 font-medium mb-3">
@@ -466,18 +409,18 @@ const GestionAsignaciones = () => {
             <div className="flex gap-3 mt-6">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={actionLoading}
                 className={`py-3 px-6 bg-sky-600 text-white rounded-md transition duration-150 ease-in-out font-semibold
-                          ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-sky-700 cursor-pointer'}`}
+                          ${actionLoading ? 'cursor-not-allowed opacity-60' : 'hover:bg-sky-700 cursor-pointer'}`}
               >
-                {loading ? 'Creando...' : ' Crear Asignación'}
+                {actionLoading ? 'Creando...' : ' Crear Asignación'}
               </button>
               <button
                 type="button"
-                onClick={() => setMostrarFormulario(false)}
-                disabled={loading}
+                onClick={() => { setMostrarFormulario(false); limpiarError(); setFormError(null); }}
+                disabled={actionLoading}
                 className={`py-3 px-6 bg-gray-600 text-white rounded-md transition duration-150 ease-in-out
-                          ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-gray-700 cursor-pointer'}`}
+                          ${actionLoading ? 'cursor-not-allowed opacity-60' : 'hover:bg-gray-700 cursor-pointer'}`}
               >
                 Cancelar
               </button>
@@ -531,9 +474,9 @@ const GestionAsignaciones = () => {
       </div>
 
       {/* Mensajes de error */}
-      {error && (
+      {(error || formError) && (
         <div className="p-4 bg-red-900/30 text-red-300 border border-red-500 rounded-md mb-6" role="alert">
-          {error}
+          {error || formError}
         </div>
       )}
 
@@ -544,7 +487,7 @@ const GestionAsignaciones = () => {
             {filtro === 'todas' ? 'Todas las Asignaciones' : `Asignaciones ${filtro.charAt(0).toUpperCase() + filtro.slice(1)}`}
           </h2>
           <button
-            onClick={cargarDatos}
+            onClick={reload}
             disabled={loading}
             className={`py-2 px-4 bg-green-600 text-white rounded-md transition duration-150 ease-in-out 
                       ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-green-700 cursor-pointer'}`}
@@ -558,13 +501,13 @@ const GestionAsignaciones = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-sky-400 mb-4"></div>
             <p className="text-white italic">Cargando asignaciones...</p>
           </div>
-        ) : asignaciones.length === 0 ? (
+        ) : asignacionesFiltradas.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">No hay asignaciones {filtro !== 'todas' ? filtro : ''}</p>
           </div>
         ) : (
           <div className="grid gap-4">
-            {asignaciones.map((asignacion) => (
+            {asignacionesFiltradas.map((asignacion) => (
               <div
                 key={asignacion.asignacion_id}
                 className={`p-5 border rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
@@ -601,7 +544,7 @@ const GestionAsignaciones = () => {
                         <>
                           <button
                             onClick={() => handleCambiarEstado(asignacion.asignacion_id, 'completada')}
-                            disabled={loading}
+                            disabled={actionLoading}
                             className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-3 text-sm transition"
                             title="Marcar como completada"
                           >
@@ -609,7 +552,7 @@ const GestionAsignaciones = () => {
                           </button>
                           <button
                             onClick={() => handleCambiarEstado(asignacion.asignacion_id, 'cancelada')}
-                            disabled={loading}
+                            disabled={actionLoading}
                             className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-md py-2 px-3 text-sm transition"
                             title="Cancelar asignación"
                           >
@@ -619,7 +562,7 @@ const GestionAsignaciones = () => {
                       )}
                       <button
                         onClick={() => handleEliminar(asignacion.asignacion_id)}
-                        disabled={loading}
+                        disabled={actionLoading}
                         className="bg-red-600 hover:bg-red-700 text-white rounded-md py-2 px-3 text-sm transition"
                         title="Eliminar asignación"
                       >

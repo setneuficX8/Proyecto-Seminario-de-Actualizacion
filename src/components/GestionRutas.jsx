@@ -1,48 +1,27 @@
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { getRutas, updateRuta, deleteRuta, desactivarRuta, reactivarRuta } from '../services/RutasService';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useRutas } from '@/hooks/useRutas';
 
 const GestionRutas = () => {
   const { isAdmin, loading: authLoading } = useAuth();
-  const [rutas, setRutas] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const {
+    rutas,
+    loading,
+    actionLoading,
+    error,
+    actualizarRuta,
+    desactivarRuta,
+    reactivarRuta,
+    eliminarRuta,
+    limpiarError
+  } = useRutas();
+
+  // Estado exclusivamente de UI
   const [success, setSuccess] = useState(null);
+  const [formError, setFormError] = useState(null);
   const [editando, setEditando] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
-
-  // Referencia de montaje: evita actualizar estado tras el desmontaje.
-  const isMountedRef = useRef(true);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!authLoading && isAdmin) {
-      cargarRutas();
-    }
-  }, [authLoading, isAdmin]);
-
-  const cargarRutas = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getRutas();
-      if (!isMountedRef.current) return;
-      setRutas(data);
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      setError(err.message || 'Error al cargar rutas');
-      console.error('Error cargando rutas:', err);
-    } finally {
-      if (isMountedRef.current) setLoading(false);
-    }
-  };
 
   const handleEdit = (ruta) => {
     setEditando({
@@ -50,39 +29,33 @@ const GestionRutas = () => {
       nombre_ruta: ruta.nombre_ruta,
       activo: ruta.activo
     });
-    setError(null);
+    limpiarError();
+    setFormError(null);
     setSuccess(null);
   };
 
   const handleCancelarEdicion = () => {
     setEditando(null);
-    setError(null);
+    limpiarError();
+    setFormError(null);
   };
 
   const handleGuardarEdicion = async () => {
     if (!editando.nombre_ruta.trim()) {
-      setError('El nombre de la ruta es requerido');
+      setFormError('El nombre de la ruta es requerido');
       return;
     }
 
     try {
-      setLoading(true);
-      setError(null);
-      
-      await updateRuta(editando.id, {
+      await actualizarRuta(editando.id, {
         nombre_ruta: editando.nombre_ruta,
         activo: editando.activo
       });
-      
       setSuccess('Ruta actualizada correctamente');
       setEditando(null);
-      await cargarRutas();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message || 'Error al actualizar ruta');
-      console.error('Error actualizando ruta:', err);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -92,17 +65,11 @@ const GestionRutas = () => {
     }
 
     try {
-      setLoading(true);
-      setError(null);
       await desactivarRuta(id);
       setSuccess('Ruta desactivada correctamente');
-      await cargarRutas();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message || 'Error al desactivar ruta');
-      console.error('Error desactivando ruta:', err);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -112,17 +79,11 @@ const GestionRutas = () => {
     }
 
     try {
-      setLoading(true);
-      setError(null);
       await reactivarRuta(id);
       setSuccess('Ruta reactivada correctamente');
-      await cargarRutas();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message || 'Error al reactivar ruta');
-      console.error('Error reactivando ruta:', err);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -132,17 +93,11 @@ const GestionRutas = () => {
     }
 
     try {
-      setLoading(true);
-      setError(null);
-      await deleteRuta(id);
+      await eliminarRuta(id);
       setSuccess('Ruta eliminada correctamente');
-      await cargarRutas();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err.message || 'Error al eliminar ruta');
-      console.error('Error eliminando ruta:', err);
-    } finally {
-      setLoading(false);
+      // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
@@ -188,9 +143,9 @@ const GestionRutas = () => {
       </div>
 
       {/* Mensajes de éxito y error */}
-      {error && (
+      {(error || formError) && (
         <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-          {error}
+          {error || formError}
         </div>
       )}
 
@@ -322,14 +277,14 @@ const GestionRutas = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
                             onClick={handleGuardarEdicion}
-                            disabled={loading}
+                            disabled={actionLoading}
                             className="text-green-400 hover:text-green-300 mr-3 disabled:text-gray-600"
                           >
                             Guardar
                           </button>
                           <button
                             onClick={handleCancelarEdicion}
-                            disabled={loading}
+                            disabled={actionLoading}
                             className="text-gray-400 hover:text-gray-300 disabled:text-gray-600"
                           >
                             Cancelar
