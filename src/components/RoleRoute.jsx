@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
 
 /**
  * RoleRoute component
@@ -12,8 +12,8 @@ export default function RoleRoute({ children, blockedRoles = [] }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[300px] text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-sky-400" />
+      <div className="flex min-h-[300px] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--line)] border-t-[var(--signal)]" aria-hidden="true" />
       </div>
     );
   }

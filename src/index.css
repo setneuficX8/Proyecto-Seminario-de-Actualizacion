@@ -3,7 +3,7 @@
 /* =============================================================================
    Tokens de diseño — Tailwind v4 (@theme)
    Modo "Operate": grafito técnico de bajo deslumbramiento + acento ámbar
-   funcional. Sin gradientes decorativos. Usar mediante var(--token).
+   funcional. Sin degradados decorativos. Usar mediante var(--token).
    ============================================================================= */
 @theme static {
   /* Superficies */

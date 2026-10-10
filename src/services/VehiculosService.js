@@ -180,7 +180,7 @@ export const createVehiculo = async (vehiculoData) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',  // ← AGREGAR ESTO
+                'Accept': 'application/json',  // AGREGAR ESTO
             },
             body: JSON.stringify(apiPayload),
         });

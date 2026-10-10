@@ -1,212 +1,196 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
+import useAuth from '@/hooks/useAuth';
 import { supabase } from './Conection';
-import Swal from 'sweetalert2';
+import { labelClass, inputClass, buttonPrimaryClass } from '@/components/ui/tokens';
+import { CloseIcon } from '@/components/ui/icons';
 
 function RegisterSupabase() {
-    const { role, loading } = useAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [Firstname, setFirstname] = useState('');
-    const [Lastname, setLastname] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+  const { role, loading } = useAuth();
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState(null);
+  const [formSuccess, setFormSuccess] = useState(null);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (isSubmitting) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
 
-        setIsSubmitting(true);
-        try {
-            // 1. Registrar usuario en Authentication
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                    data: {
-                        nombre: Firstname,
-                        apellido: Lastname,
-                        rol: 'administrador', 
-                        display_name: `${Firstname} ${Lastname}`
-                    }
-                }
-            });
-
-            if (error) {
-                console.error('Error al registrar:', error);
-                const isRateLimitError = error.status === 429 || /rate limit/i.test(error.message || '');
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error al registrar',
-                    text: isRateLimitError
-                        ? 'Se alcanzó el límite de intentos de registro. Espera unos minutos antes de volver a intentar.'
-                        : error.message,
-                    confirmButtonColor: '#0ea5e9'
-                });
-                return;
-            }
-
-            
-            // El trigger de Supabase creará automáticamente el registro en la tabla administrador
-            Swal.fire({
-                icon: 'success',
-                title: '¡Registro exitoso!',
-                text: 'Se ha enviado un correo de confirmación a tu email. El trigger insertará tu usuario como administrador.',
-                showConfirmButton: true,
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#0ea5e9',
-                timer: 5000,
-                timerProgressBar: true
-            });
-
-        } catch (error) {
-            console.error('Error inesperado:', error);
-            const isRateLimitError = error?.status === 429 || /rate limit/i.test(error?.message || '');
-            Swal.fire({
-                icon: 'error',
-                title: isRateLimitError ? 'Demasiados intentos' : 'Error inesperado',
-                text: isRateLimitError
-                    ? 'Se alcanzó el límite de intentos de registro. Espera unos minutos antes de volver a intentar.'
-                    : 'Ocurrió un error inesperado. Intenta de nuevo.',
-                confirmButtonColor: '#0ea5e9'
-            });
-        } finally {
-            setIsSubmitting(false);
+    setFormError(null);
+    setFormSuccess(null);
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nombre,
+            apellido,
+            rol: 'administrador',
+            display_name: `${nombre} ${apellido}`
+          }
         }
-    }
+      });
 
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-sky-400" />
-            </div>
+      if (error) {
+        const isRateLimit = error.status === 429 || /rate limit/i.test(error.message || '');
+        setFormError(
+          isRateLimit
+            ? 'Se alcanzó el límite de intentos de registro. Espera unos minutos antes de volver a intentar.'
+            : (error.message || 'Error al registrar')
         );
-    }
+        return;
+      }
 
-    // Si el usuario está autenticado y es chofer, bloquear acceso
-    if (role === 'chofer') {
-        return <Navigate to="/" replace />;
+      setFormSuccess('Registro exitoso. Se envió un correo de confirmación a tu email.');
+    } catch (error) {
+      console.error('Error inesperado:', error);
+      const isRateLimit = error?.status === 429 || /rate limit/i.test(error?.message || '');
+      setFormError(
+        isRateLimit
+          ? 'Se alcanzó el límite de intentos de registro. Espera unos minutos antes de volver a intentar.'
+          : 'Ocurrió un error inesperado. Intenta de nuevo.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
+  if (loading) {
     return (
-        <div className="max-w-md mx-auto p-5">
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg p-8 border-t-4 border-sky-400">
-                <h2 className="text-3xl font-bold text-white mb-2 text-center font-montserrat">
-                    Crear Cuenta
-                    (Administrador)
-                </h2>
-                <p className="text-gray-300 text-center mb-6">
-                    Registra tu cuenta para acceder al sistema
-                </p>
+      <div className="flex min-h-[300px] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--line)] border-t-[var(--signal)]" aria-hidden="true" />
+      </div>
+    );
+  }
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+  // Si el usuario está autenticado y es chofer, bloquear acceso
+  if (role === 'chofer') {
+    return <Navigate to="/" replace />;
+  }
 
-                    {/* Campo de Nombre */}
-                    <div>
-                        <label htmlFor="Firstname" className="block text-sm font-semibold text-gray-300 mb-2">
-                            Nombre
-                        </label>
-                        <input
-                            type="text"
-                            id="Firstname"
-                            name="Firstname"
-                            required
-                            placeholder="Tu nombre"
-                            onChange={(e) => setFirstname(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition duration-200"
-                        />
-                    </div>
-                    {/* Campo de Apellido */}
-                    <div>
-                        <label htmlFor="Lastname" className="block text-sm font-semibold text-gray-300 mb-2">
-                            Apellido
-                        </label>
-                        <input
-                            type="text"
-                            id="Lastname"
-                            name="Lastname"
-                            required
-                            placeholder="Tu apellido"
-                            onChange={(e) => setLastname(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition duration-200"
-                        />
-                    </div>
+  return (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6">
+        <h1 className="text-lg font-semibold text-[var(--text)]">Crear cuenta</h1>
+        <p className="mt-1 text-sm text-[var(--text-mute)]">Registra una cuenta de administrador</p>
 
-                    {/* Campo de Email */}
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-semibold text-gray-300 mb-2">
-                            Correo Electrónico
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            required
-                            placeholder="ejemplo@correo.com"
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition duration-200"
-                        />
-                    </div>
-
-                    {/* Campo de Contraseña */}
-                    <div>
-                        <label htmlFor="password" className="block text-sm font-semibold text-gray-300 mb-2">
-                            Contraseña
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                id="password"
-                                name="password"
-                                required
-                                placeholder="Mínimo 6 caracteres"
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition duration-200"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-sky-400 transition duration-200"
-                            >
-                                {showPassword ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                                    </svg>
-                                ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Botón de registro */}
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full py-3 px-4 bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-500 hover:to-sky-600 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-montserrat"
-                    >
-                        {isSubmitting ? 'Registrando...' : 'Registrarse'}
-                    </button>
-                </form>
-
-                {/* Link a login */}
-                <div className="mt-6 text-center">
-                    <p className="text-gray-400 text-sm">
-                        ¿Ya tienes una cuenta?{' '}
-                        <Link to="/LoginSupabase" className="text-sky-400 hover:text-sky-300 font-semibold transition duration-200">
-                            Iniciar Sesión
-                        </Link>
-                    </p>
-                </div>
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {formError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="flex items-start justify-between gap-3 rounded-md border border-[var(--danger)] bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--text)]"
+            >
+              <span>{formError}</span>
+              <button
+                type="button"
+                onClick={() => setFormError(null)}
+                aria-label="Cerrar alerta"
+                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-[var(--text-mute)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]"
+              >
+                <CloseIcon className="h-4 w-4" />
+              </button>
             </div>
-        </div>
-    )
+          )}
+
+          {formSuccess && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="rounded-md border border-[var(--ok)] bg-[var(--ok)]/10 px-3 py-2 text-sm text-[var(--text)]"
+            >
+              {formSuccess}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="reg-nombre" className={labelClass}>Nombre</label>
+              <input
+                id="reg-nombre"
+                name="nombre"
+                type="text"
+                autoComplete="given-name"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                required
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="reg-apellido" className={labelClass}>Apellido</label>
+              <input
+                id="reg-apellido"
+                name="apellido"
+                type="text"
+                autoComplete="family-name"
+                value={apellido}
+                onChange={(e) => setApellido(e.target.value)}
+                required
+                className={inputClass}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="reg-email" className={labelClass}>Correo electrónico</label>
+            <input
+              id="reg-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              spellCheck={false}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="reg-password" className={labelClass}>Contraseña</label>
+            <div className="relative">
+              <input
+                id="reg-password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Mínimo 6 caracteres"
+                className={`${inputClass} pr-24`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(prev => !prev)}
+                className="absolute right-1.5 top-1/2 inline-flex h-7 -translate-y-1/2 items-center rounded px-2 text-xs font-medium text-[var(--text-mute)] transition-colors hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]"
+              >
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" disabled={isSubmitting} className={`${buttonPrimaryClass} w-full`}>
+            {isSubmitting ? 'Registrando…' : 'Registrarse'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-[var(--text-mute)]">
+          ¿Ya tienes una cuenta?{' '}
+          <Link to="/LoginSupabase" className="font-medium text-[var(--signal)] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]">
+            Iniciar sesión
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default RegisterSupabase;

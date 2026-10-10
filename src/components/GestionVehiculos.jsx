@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useVehiculos } from '@/hooks/useVehiculos';
 import StatusDot from '@/components/ui/StatusDot';
 import { Table, Th, Tr, Td, TableMessage } from '@/components/ui/Table';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { PencilIcon, TrashIcon, PlusIcon, CloseIcon } from '@/components/ui/icons';
 import {
   labelClass,
@@ -38,6 +39,7 @@ const GestionVehiculos = () => {
   const [filtroChofer, setFiltroChofer] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [formData, setFormData] = useState(formDataInicial());
+  const [confirm, setConfirm] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -99,7 +101,7 @@ const GestionVehiculos = () => {
     setMostrarFormulario(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!isAdmin) {
       setFormError('Solo los administradores pueden eliminar vehículos');
       return;
@@ -113,12 +115,25 @@ const GestionVehiculos = () => {
       setFormError('No se puede eliminar un vehículo asignado a un chofer. Desasigne el chofer primero.');
       return;
     }
-    if (!window.confirm('¿Eliminar este vehículo? Esta acción no se puede deshacer.')) return;
-    try {
-      await eliminarVehiculo(id);
-      setSuccess('Vehículo eliminado');
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) { /* error del hook */ }
+    setConfirm({
+      title: 'Eliminar vehículo',
+      message: `Se eliminará el vehículo ${vehiculo?.placa || ''}. Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      tone: 'danger',
+      onConfirm: async () => {
+        await eliminarVehiculo(id);
+        setSuccess('Vehículo eliminado');
+        setTimeout(() => setSuccess(null), 3000);
+      }
+    });
+  };
+
+  const ejecutarConfirmacion = async () => {
+    const action = confirm?.onConfirm;
+    setConfirm(null);
+    if (action) {
+      try { await action(); } catch (err) { /* error del hook */ }
+    }
   };
 
   const vehiculosFiltrados = vehiculos.filter(vehiculo => {
@@ -332,6 +347,17 @@ const GestionVehiculos = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirm)}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        tone={confirm?.tone}
+        busy={loading}
+        onCancel={() => setConfirm(null)}
+        onConfirm={ejecutarConfirmacion}
+      />
     </div>
   );
 };

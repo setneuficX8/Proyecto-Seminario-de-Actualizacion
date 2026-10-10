@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRutas } from '@/hooks/useRutas';
 import StatusDot from '@/components/ui/StatusDot';
 import { Table, Th, Tr, Td, TableMessage } from '@/components/ui/Table';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import { PencilIcon, TrashIcon, PowerIcon, CloseIcon } from '@/components/ui/icons';
 import {
   labelClass,
@@ -32,6 +33,7 @@ const GestionRutas = () => {
   const [success, setSuccess] = useState(null);
   const [formError, setFormError] = useState(null);
   const [editando, setEditando] = useState(null);
+  const [confirm, setConfirm] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
 
@@ -67,31 +69,48 @@ const GestionRutas = () => {
     }
   };
 
-  const handleDesactivar = async (ruta) => {
-    if (!window.confirm(`¿Desactivar la ruta "${ruta.nombre_ruta}"?`)) return;
-    try {
+  const handleDesactivar = (ruta) => setConfirm({
+    title: 'Desactivar ruta',
+    message: `La ruta "${ruta.nombre_ruta}" quedará inactiva.`,
+    confirmLabel: 'Desactivar',
+    tone: 'primary',
+    onConfirm: async () => {
       await desactivarRuta(ruta.id);
       setSuccess('Ruta desactivada');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) { /* error del hook */ }
-  };
+    }
+  });
 
-  const handleReactivar = async (ruta) => {
-    if (!window.confirm(`¿Reactivar la ruta "${ruta.nombre_ruta}"?`)) return;
-    try {
+  const handleReactivar = (ruta) => setConfirm({
+    title: 'Reactivar ruta',
+    message: `La ruta "${ruta.nombre_ruta}" volverá a estar activa.`,
+    confirmLabel: 'Reactivar',
+    tone: 'primary',
+    onConfirm: async () => {
       await reactivarRuta(ruta.id);
       setSuccess('Ruta reactivada');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) { /* error del hook */ }
-  };
+    }
+  });
 
-  const handleEliminar = async (ruta) => {
-    if (!window.confirm(`¿Eliminar permanentemente la ruta "${ruta.nombre_ruta}"? Esta acción no se puede deshacer.`)) return;
-    try {
+  const handleEliminar = (ruta) => setConfirm({
+    title: 'Eliminar ruta',
+    message: `Se eliminará permanentemente la ruta "${ruta.nombre_ruta}". Esta acción no se puede deshacer.`,
+    confirmLabel: 'Eliminar',
+    tone: 'danger',
+    onConfirm: async () => {
       await eliminarRuta(ruta.id);
       setSuccess('Ruta eliminada');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err) { /* error del hook */ }
+    }
+  });
+
+  const ejecutarConfirmacion = async () => {
+    const action = confirm?.onConfirm;
+    setConfirm(null);
+    if (action) {
+      try { await action(); } catch (err) { /* error del hook */ }
+    }
   };
 
   const rutasFiltradas = rutas.filter(ruta => {
@@ -279,6 +298,17 @@ const GestionRutas = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirm)}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        tone={confirm?.tone}
+        busy={actionLoading}
+        onCancel={() => setConfirm(null)}
+        onConfirm={ejecutarConfirmacion}
+      />
     </div>
   );
 };

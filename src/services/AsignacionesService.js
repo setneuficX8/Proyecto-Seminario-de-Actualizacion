@@ -455,7 +455,7 @@ export const updateAsignacion = async (asignacionId, asignacionData) => {
 
 /**
  * Cambiar el estado de una asignación
- * (activa → completada/cancelada)
+ * (activa -> completada/cancelada)
  */
 export const cambiarEstadoAsignacion = async (asignacionId, nuevoEstado) => {
     try {

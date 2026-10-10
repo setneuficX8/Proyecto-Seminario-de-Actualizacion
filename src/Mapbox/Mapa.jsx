@@ -3,7 +3,8 @@ import mapboxgl from 'mapbox-gl'
 import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions'
 import polyline from '@mapbox/polyline';
 import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css'
-import { createRuta } from '../services/RutasService'
+import { createRuta } from '@/services/RutasService'
+import { labelClass, inputClass, buttonPrimaryClass } from '@/components/ui/tokens'
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './Mapa.css'
@@ -178,10 +179,10 @@ function Mapa() {
 
   if (error) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h3>Error en el mapa</h3>
-        <p>{error}</p>
-        <p>Verifica tu conexión a internet y que el token de Mapbox sea válido.</p>
+      <div className="p-5 text-center text-[var(--text-mute)]">
+        <h3 className="text-base font-semibold text-[var(--text)]">No se pudo cargar el mapa</h3>
+        <p className="mt-1 text-sm">{error}</p>
+        <p className="mt-1 text-sm">Verifica tu conexión a internet y que el token de Mapbox sea válido.</p>
       </div>
     )
   }
@@ -189,46 +190,35 @@ function Mapa() {
   return (
     <div className="relative w-full h-[calc(100vh-11rem)] min-h-[420px]">
       {isLoading && (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <p>Cargando mapa...</p>
-        </div>
+        <div className="p-5 text-center text-sm text-[var(--text-mute)]">Cargando mapa…</div>
       )}
       
       {/* Formulario para guardar ruta */}
       {rutaActual && (
-        <div className="absolute top-4 right-4 z-10 bg-white p-4 rounded-lg shadow-lg max-w-sm">
+        <div className="absolute right-4 top-4 z-10 w-full max-w-sm rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
           <form onSubmit={handleGuardarRuta} className="space-y-3">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Crea una Ruta</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Distancia: {(rutaActual.distance / 1000).toFixed(2)} km
-              </p>
-              <p className="text-sm text-gray-600 mb-3">
-                Duración: {Math.round(rutaActual.duration / 60)} min
+              <h3 className="text-sm font-semibold text-[var(--text)]">Crear ruta</h3>
+              <p className="mt-1 font-mono text-xs tabular-nums text-[var(--text-mute)]">
+                Distancia: {(rutaActual.distance / 1000).toFixed(2)} km · Duración: {Math.round(rutaActual.duration / 60)} min
               </p>
             </div>
             
             <div>
-              <label htmlFor="nombreRuta" className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre de la ruta
-              </label>
+              <label htmlFor="nombreRuta" className={labelClass}>Nombre de la ruta</label>
               <input
                 id="nombreRuta"
                 type="text"
                 value={nombreRuta}
                 onChange={(e) => setNombreRuta(e.target.value)}
                 placeholder="Ej: Ruta Centro - Norte"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={guardando}
+                className={`${inputClass} disabled:opacity-60`}
               />
             </div>
             
-            <button
-              type="submit"
-              disabled={guardando}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {guardando ? 'Guardando...' : 'Guardar Ruta'}
+            <button type="submit" disabled={guardando} className={`${buttonPrimaryClass} w-full`}>
+              {guardando ? 'Guardando…' : 'Guardar ruta'}
             </button>
           </form>
         </div>

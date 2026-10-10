@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAsignaciones } from '@/hooks/useAsignaciones';
+import StatusDot from '@/components/ui/StatusDot';
+import { Table, Th, Tr, Td, TableMessage } from '@/components/ui/Table';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { CheckIcon, TrashIcon, PlusIcon, CloseIcon } from '@/components/ui/icons';
+import {
+  labelClass,
+  inputClass,
+  buttonPrimaryClass,
+  buttonGhostClass,
+  iconButtonClass,
+  alertErrorClass
+} from '@/components/ui/tokens';
 
 // Constantes para días de la semana
 const DIAS_SEMANA = [
@@ -13,21 +25,22 @@ const DIAS_SEMANA = [
   { id: 6, nombre: 'Sáb', nombreCompleto: 'Sábado' }
 ];
 
-// Función auxiliar para formatear horario de forma legible
+const FILTROS = [
+  { value: 'todas', label: 'Todas' },
+  { value: 'activas', label: 'Activas' },
+  { value: 'completada', label: 'Completadas' },
+  { value: 'cancelada', label: 'Canceladas' }
+];
+
+const ESTADO_TONE = { activa: 'ok', completada: 'idle', cancelada: 'danger' };
+
 const formatearHorario = (diasSemana, horaInicio, horaFin) => {
-  if (!diasSemana || diasSemana.length === 0) {
-    return 'Sin horario definido';
-  }
-
-  const diasOrdenados = [...diasSemana].sort((a, b) => a - b);
-  const nombresDias = diasOrdenados.map(d => DIAS_SEMANA.find(dia => dia.id === d)?.nombre || '').join(', ');
-
-  const formatoHora = (hora) => {
-    if (!hora) return '--:--';
-    return hora.substring(0, 5); // Mostrar solo HH:MM
-  };
-
-  return `${nombresDias} · ${formatoHora(horaInicio)}–${formatoHora(horaFin)}`;
+  if (!diasSemana || diasSemana.length === 0) return 'Sin horario';
+  const dias = [...diasSemana].sort((a, b) => a - b)
+    .map(d => DIAS_SEMANA.find(dia => dia.id === d)?.nombre || '')
+    .join(', ');
+  const h = (v) => (v ? v.substring(0, 5) : '--:--');
+  return `${dias} · ${h(horaInicio)}–${h(horaFin)}`;
 };
 
 const formDataInicial = () => ({
@@ -41,6 +54,10 @@ const formDataInicial = () => ({
   observaciones: ''
 });
 
+const segBase = 'inline-flex h-9 items-center rounded-md px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]';
+const segActive = `${segBase} bg-[var(--signal)] text-[var(--canvas)]`;
+const segInactive = `${segBase} text-[var(--text-mute)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)]`;
+
 const GestionAsignaciones = () => {
   const { isAdmin, isChofer, loading: authLoading } = useAuth();
   const {
@@ -51,7 +68,6 @@ const GestionAsignaciones = () => {
     loading,
     actionLoading,
     error,
-    reload,
     crearAsignacion,
     cambiarEstadoAsignacion,
     eliminarAsignacion,
@@ -59,65 +75,46 @@ const GestionAsignaciones = () => {
   } = useAsignaciones();
 
   // Estado exclusivamente de UI
-  const [filtro, setFiltro] = useState('todas'); // todas, activas, completada, cancelada
+  const [filtro, setFiltro] = useState('todas');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [formError, setFormError] = useState(null);
   const [formData, setFormData] = useState(formDataInicial());
+  const [confirm, setConfirm] = useState(null);
 
-  const toggleFormulario = () => {
+  const abrirCrear = () => {
     limpiarError();
     setFormError(null);
-    setMostrarFormulario(prev => !prev);
+    setFormData(formDataInicial());
+    setMostrarFormulario(true);
+  };
+
+  const cerrarFormulario = () => {
+    setMostrarFormulario(false);
+    setFormError(null);
   };
 
   const handleInputChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Manejar cambio en checkboxes de días
-  const handleDiaChange = (diaId) => {
+  const toggleDia = (diaId) => {
     setFormData(prev => {
-      const diasActuales = prev.dias_semana || [];
-      const nuevosDias = diasActuales.includes(diaId)
-        ? diasActuales.filter(d => d !== diaId)
-        : [...diasActuales, diaId].sort((a, b) => a - b);
-
-      return {
-        ...prev,
-        dias_semana: nuevosDias
-      };
+      const actuales = prev.dias_semana || [];
+      const dias = actuales.includes(diaId)
+        ? actuales.filter(d => d !== diaId)
+        : [...actuales, diaId].sort((a, b) => a - b);
+      return { ...prev, dias_semana: dias };
     });
-  };
-
-  // Seleccionar Lunes a Viernes rápidamente
-  const seleccionarLunesViernes = () => {
-    setFormData(prev => ({
-      ...prev,
-      dias_semana: [1, 2, 3, 4, 5]
-    }));
-  };
-
-  // Limpiar selección de días
-  const limpiarDias = () => {
-    setFormData(prev => ({
-      ...prev,
-      dias_semana: []
-    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError(null);
 
-    // Validaciones de UI
-    if (!formData.dias_semana || formData.dias_semana.length === 0) {
+    if (!formData.dias_semana.length) {
       setFormError('Debes seleccionar al menos un día de la semana');
       return;
     }
-
     if (formData.hora_inicio >= formData.hora_fin) {
       setFormError('La hora de fin debe ser posterior a la hora de inicio');
       return;
@@ -134,35 +131,38 @@ const GestionAsignaciones = () => {
         hora_fin: formData.hora_fin,
         observaciones: formData.observaciones
       });
-
       setFormData(formDataInicial());
       setMostrarFormulario(false);
     } catch (err) {
-      // El hook ya deja el mensaje disponible en `error` (incluye conflictos).
-    }
-  };
-
-  const handleCambiarEstado = async (asignacionId, nuevoEstado) => {
-    if (!window.confirm(`¿Estás seguro de cambiar el estado a "${nuevoEstado}"?`)) {
-      return;
-    }
-
-    try {
-      await cambiarEstadoAsignacion(asignacionId, nuevoEstado);
-    } catch (err) {
       // El hook ya deja el mensaje disponible en `error`.
     }
   };
 
-  const handleEliminar = async (asignacionId) => {
-    if (!window.confirm('¿Estás seguro de eliminar esta asignación?')) {
-      return;
-    }
+  const pedirCambioEstado = (asignacion, nuevoEstado) => {
+    setConfirm({
+      title: `Marcar como ${nuevoEstado}`,
+      message: `La asignación de ${asignacion.chofer_completo || 'este chofer'} pasará a estado "${nuevoEstado}".`,
+      confirmLabel: 'Confirmar',
+      tone: nuevoEstado === 'cancelada' ? 'danger' : 'primary',
+      onConfirm: () => cambiarEstadoAsignacion(asignacion.asignacion_id, nuevoEstado)
+    });
+  };
 
-    try {
-      await eliminarAsignacion(asignacionId);
-    } catch (err) {
-      // El hook ya deja el mensaje disponible en `error`.
+  const pedirEliminar = (asignacion) => {
+    setConfirm({
+      title: 'Eliminar asignación',
+      message: `Se eliminará la asignación de ${asignacion.chofer_completo || 'este chofer'}. Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      tone: 'danger',
+      onConfirm: () => eliminarAsignacion(asignacion.asignacion_id)
+    });
+  };
+
+  const ejecutarConfirmacion = async () => {
+    const action = confirm?.onConfirm;
+    setConfirm(null);
+    if (action) {
+      try { await action(); } catch (err) { /* error del hook */ }
     }
   };
 
@@ -170,471 +170,246 @@ const GestionAsignaciones = () => {
     ? asignaciones
     : asignaciones.filter(a => a.estado === filtro);
 
-  // Loading de autenticación
   if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-sky-400"></div>
-        <div className="text-xl font-semibold text-white font-montserrat">
-          Verificando permisos...
-        </div>
+      <div className="flex min-h-[300px] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--line)] border-t-[var(--signal)]" aria-hidden="true" />
       </div>
     );
   }
 
-  // Si no tiene rol válido
   if (!isAdmin && !isChofer) {
     return (
-      <div className="p-5 max-w-4xl mx-auto">
-        <div className="bg-red-900/30 border border-red-500 rounded-lg p-6 text-center">
-          <h2 className="text-2xl font-bold text-red-400 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-300">
-            No tienes permisos para acceder a esta sección. Por favor, contacta al administrador.
-          </p>
-        </div>
+      <div className="rounded-md border border-[var(--danger)] bg-[var(--danger)]/10 p-6 text-center">
+        <h2 className="text-base font-semibold text-[var(--text)]">Acceso denegado</h2>
+        <p className="mt-1 text-sm text-[var(--text-mute)]">No tienes permisos para acceder a esta sección.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-5 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white font-montserrat mb-2">
-          Gestión de Asignaciones
-        </h1>
-        <p className="text-gray-300">
-          {isAdmin ? 'Administra las asignaciones de choferes, vehículos y rutas' : 'Consulta tus asignaciones'}
+    <div>
+      <header className="mb-6">
+        <h1 className="text-xl font-semibold text-[var(--text)]">Asignaciones</h1>
+        <p className="mt-1 text-sm text-[var(--text-mute)]">
+          {isAdmin ? 'Asigna choferes, vehículos y rutas' : 'Consulta tus asignaciones'}
         </p>
-      </div>
+      </header>
 
-      {/* Botón para mostrar formulario (solo admin) */}
-      {isAdmin && (
-        <div className="mb-6">
-          <button
-            onClick={toggleFormulario}
-            className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md font-semibold flex items-center gap-2"
-          >
-            {mostrarFormulario ? ' Cancelar' : ' Nueva Asignación'}
-          </button>
-        </div>
+      {(error || formError) && (
+        <div className={alertErrorClass} role="alert">{error || formError}</div>
       )}
 
-      {/* Formulario de creación (solo admin) */}
-      {isAdmin && mostrarFormulario && (
-        <div className="mb-8 p-6 border border-sky-400 rounded-lg shadow-md backdrop-blur-sm bg-slate-800/50">
-          <h2 className="text-xl font-semibold mb-4 text-white font-montserrat">
-            ➕ Nueva Asignación
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              {/* Selector de Chofer */}
-              <div>
-                <label className="block text-gray-300 font-medium mb-2">
-                  Chofer <span className="text-red-400">*</span>
-                </label>
-                <select
-                  name="chofer_id"
-                  value={formData.chofer_id}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
-                >
-                  <option value="">Seleccionar chofer...</option>
-                  {choferesDisponibles.map(chofer => (
-                    <option key={chofer.id} value={chofer.id}>
-                      {chofer.nombre_completo} - {chofer.email}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      {/* Barra de filtros + acción */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {FILTROS.map(f => (
+          <button
+            key={f.value}
+            type="button"
+            onClick={() => setFiltro(f.value)}
+            aria-pressed={filtro === f.value}
+            className={filtro === f.value ? segActive : segInactive}
+          >
+            {f.label}
+          </button>
+        ))}
+        <span className="ml-2 text-xs text-[var(--text-faint)]">
+          {asignacionesFiltradas.length} registro{asignacionesFiltradas.length !== 1 ? 's' : ''}
+        </span>
+        {isAdmin && (
+          <button type="button" onClick={abrirCrear} className={`${buttonPrimaryClass} ml-auto`}>
+            <PlusIcon />
+            Nueva asignación
+          </button>
+        )}
+      </div>
 
-              {/* Selector de Vehículo */}
-              <div>
-                <label className="block text-gray-300 font-medium mb-2">
-                  Vehículo <span className="text-red-400">*</span>
-                </label>
-                <select
-                  name="vehiculo_id"
-                  value={formData.vehiculo_id}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
-                >
-                  <option value="">Seleccionar vehículo...</option>
-                  {vehiculosDisponibles.map(vehiculo => (
-                    <option key={vehiculo.id} value={vehiculo.id}>
-                      {vehiculo.placa} - {vehiculo.marca} {vehiculo.modelo}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      {loading && asignaciones.length === 0 ? (
+        <div className="py-12 text-center text-sm text-[var(--text-mute)]">Cargando asignaciones…</div>
+      ) : (
+        <Table>
+          <thead>
+            <tr>
+              <Th>Ruta</Th>
+              <Th>Vehículo</Th>
+              <Th>Chofer</Th>
+              <Th>Horario</Th>
+              <Th>Estado</Th>
+              {isAdmin && <Th align="right">Acciones</Th>}
+            </tr>
+          </thead>
+          <tbody>
+            {asignacionesFiltradas.length === 0 ? (
+              <TableMessage colSpan={isAdmin ? 6 : 5}>No hay asignaciones que coincidan con el filtro.</TableMessage>
+            ) : (
+              asignacionesFiltradas.map((asignacion) => (
+                <Tr key={asignacion.asignacion_id}>
+                  <Td className="text-[var(--text)]">{asignacion.nombre_ruta || '—'}</Td>
+                  <Td className="text-[var(--text-mute)]">
+                    <span className="font-mono">{asignacion.placa || '—'}</span>
+                    <span className="ml-2">{[asignacion.marca, asignacion.modelo].filter(Boolean).join(' ')}</span>
+                  </Td>
+                  <Td className="text-[var(--text)]">{asignacion.chofer_completo || '—'}</Td>
+                  <Td className="font-mono text-xs tabular-nums text-[var(--text-mute)]">
+                    {formatearHorario(asignacion.dias_semana, asignacion.hora_inicio, asignacion.hora_fin)}
+                  </Td>
+                  <Td>
+                    <StatusDot
+                      tone={ESTADO_TONE[asignacion.estado] || 'idle'}
+                      label={asignacion.estado ? asignacion.estado.charAt(0).toUpperCase() + asignacion.estado.slice(1) : '—'}
+                    />
+                  </Td>
+                  {isAdmin && (
+                    <Td className="py-0 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {asignacion.estado === 'activa' && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => pedirCambioEstado(asignacion, 'completada')}
+                              className={iconButtonClass}
+                              aria-label="Marcar como completada"
+                              title="Marcar como completada"
+                            >
+                              <CheckIcon />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => pedirCambioEstado(asignacion, 'cancelada')}
+                              className={iconButtonClass}
+                              aria-label="Cancelar asignación"
+                              title="Cancelar asignación"
+                            >
+                              <CloseIcon />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => pedirEliminar(asignacion)}
+                          className={iconButtonClass}
+                          aria-label="Eliminar asignación"
+                          title="Eliminar asignación"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    </Td>
+                  )}
+                </Tr>
+              ))
+            )}
+          </tbody>
+        </Table>
+      )}
 
-              {/* Selector de Ruta */}
-              <div>
-                <label className="block text-gray-300 font-medium mb-2">
-                  Ruta <span className="text-red-400">*</span>
-                </label>
-                <select
-                  name="ruta_id"
-                  value={formData.ruta_id}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
-                >
-                  <option value="">Seleccionar ruta...</option>
-                  {rutasDisponibles.map(ruta => (
-                    <option key={ruta.id} value={ruta.id}>
-                      {ruta.nombre_ruta}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Vigente desde */}
-              <div>
-                <label className="block text-gray-300 font-medium mb-2">
-                  Vigente desde <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="date"
-                  name="fecha_inicio"
-                  value={formData.fecha_inicio}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
-                />
-                <p className="text-gray-400 text-xs mt-1">Fecha desde la cual aplica esta asignación</p>
-              </div>
+      {/* Modal de creación */}
+      {mostrarFormulario && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="asig-modal-title">
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 id="asig-modal-title" className="text-base font-semibold text-[var(--text)]">Nueva asignación</h2>
+              <button type="button" onClick={cerrarFormulario} aria-label="Cerrar" className={iconButtonClass}>
+                <CloseIcon />
+              </button>
             </div>
 
-            {/* Sección de Horarios */}
-            <div className="mt-6 p-4 bg-slate-700/50 rounded-lg border border-slate-600">
-              <h3 className="text-lg font-semibold text-white mb-4">📅 Horario de la Asignación</h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="asig-chofer" className={labelClass}>Chofer</label>
+                  <select id="asig-chofer" name="chofer_id" value={formData.chofer_id} onChange={handleInputChange} required className={inputClass}>
+                    <option value="">Seleccionar…</option>
+                    {choferesDisponibles.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre_completo}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="asig-vehiculo" className={labelClass}>Vehículo</label>
+                  <select id="asig-vehiculo" name="vehiculo_id" value={formData.vehiculo_id} onChange={handleInputChange} required className={inputClass}>
+                    <option value="">Seleccionar…</option>
+                    {vehiculosDisponibles.map(v => (
+                      <option key={v.id} value={v.id}>{v.placa} — {[v.marca, v.modelo].filter(Boolean).join(' ')}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="asig-ruta" className={labelClass}>Ruta</label>
+                  <select id="asig-ruta" name="ruta_id" value={formData.ruta_id} onChange={handleInputChange} required className={inputClass}>
+                    <option value="">Seleccionar…</option>
+                    {rutasDisponibles.map(r => (
+                      <option key={r.id} value={r.id}>{r.nombre_ruta}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="asig-fecha" className={labelClass}>Vigente desde</label>
+                  <input id="asig-fecha" name="fecha_inicio" type="date" value={formData.fecha_inicio} onChange={handleInputChange} required className={`${inputClass} font-mono`} />
+                </div>
+              </div>
 
-              {/* Días de la semana */}
-              <div className="mb-4">
-                <label className="block text-gray-300 font-medium mb-3">
-                  Días de la semana <span className="text-red-400">*</span>
-                </label>
-                <div className="flex flex-wrap gap-2 mb-3">
+              <fieldset>
+                <legend className={labelClass}>Días de la semana</legend>
+                <div className="flex flex-wrap gap-1.5">
                   {DIAS_SEMANA.map(dia => (
                     <button
                       key={dia.id}
                       type="button"
-                      onClick={() => handleDiaChange(dia.id)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                        formData.dias_semana.includes(dia.id)
-                          ? 'bg-sky-600 text-white shadow-lg ring-2 ring-sky-400'
-                          : 'bg-slate-600 text-gray-300 hover:bg-slate-500'
-                      }`}
+                      onClick={() => toggleDia(dia.id)}
+                      aria-pressed={formData.dias_semana.includes(dia.id)}
+                      className={formData.dias_semana.includes(dia.id) ? segActive : segInactive}
                     >
                       {dia.nombre}
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={seleccionarLunesViernes}
-                    className="text-sm px-3 py-1 bg-green-600/30 text-green-400 rounded hover:bg-green-600/50 transition"
-                  >
-                    Lun-Vie
-                  </button>
-                  <button
-                    type="button"
-                    onClick={limpiarDias}
-                    className="text-sm px-3 py-1 bg-red-600/30 text-red-400 rounded hover:bg-red-600/50 transition"
-                  >
-                    Limpiar
-                  </button>
+              </fieldset>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="asig-hora-inicio" className={labelClass}>Hora de inicio</label>
+                  <input id="asig-hora-inicio" name="hora_inicio" type="time" value={formData.hora_inicio} onChange={handleInputChange} required className={`${inputClass} font-mono`} />
+                </div>
+                <div>
+                  <label htmlFor="asig-hora-fin" className={labelClass}>Hora de fin</label>
+                  <input id="asig-hora-fin" name="hora_fin" type="time" value={formData.hora_fin} onChange={handleInputChange} required className={`${inputClass} font-mono`} />
                 </div>
               </div>
 
-              {/* Horas */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 font-medium mb-2">
-                    Hora de inicio <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="time"
-                    name="hora_inicio"
-                    value={formData.hora_inicio}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-300 font-medium mb-2">
-                    Hora de fin <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="time"
-                    name="hora_fin"
-                    value={formData.hora_fin}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white"
-                  />
-                </div>
+              <div>
+                <label htmlFor="asig-observaciones" className={labelClass}>Observaciones</label>
+                <textarea
+                  id="asig-observaciones"
+                  name="observaciones"
+                  value={formData.observaciones}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className={inputClass}
+                />
               </div>
 
-              {/* Preview del horario */}
-              {formData.dias_semana.length > 0 && (
-                <div className="mt-4 p-3 bg-sky-900/30 border border-sky-500/50 rounded-lg">
-                  <p className="text-sky-300 text-sm">
-                    <span className="font-semibold">Vista previa:</span> {formatearHorario(formData.dias_semana, formData.hora_inicio, formData.hora_fin)}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Observaciones */}
-            <div className="mt-4">
-              <label className="block text-gray-300 font-medium mb-2">
-                Observaciones
-              </label>
-              <textarea
-                name="observaciones"
-                value={formData.observaciones}
-                onChange={handleInputChange}
-                rows="3"
-                placeholder="Notas adicionales sobre esta asignación..."
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-sky-500 focus:border-sky-500 bg-slate-700 text-white placeholder-gray-400"
-              ></textarea>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                type="submit"
-                disabled={actionLoading}
-                className={`py-3 px-6 bg-sky-600 text-white rounded-md transition duration-150 ease-in-out font-semibold
-                          ${actionLoading ? 'cursor-not-allowed opacity-60' : 'hover:bg-sky-700 cursor-pointer'}`}
-              >
-                {actionLoading ? 'Creando...' : ' Crear Asignación'}
-              </button>
-              <button
-                type="button"
-                onClick={() => { setMostrarFormulario(false); limpiarError(); setFormError(null); }}
-                disabled={actionLoading}
-                className={`py-3 px-6 bg-gray-600 text-white rounded-md transition duration-150 ease-in-out
-                          ${actionLoading ? 'cursor-not-allowed opacity-60' : 'hover:bg-gray-700 cursor-pointer'}`}
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-end gap-2 pt-1">
+                <button type="button" onClick={cerrarFormulario} className={buttonGhostClass} disabled={actionLoading}>Cancelar</button>
+                <button type="submit" disabled={actionLoading} className={buttonPrimaryClass}>
+                  {actionLoading ? 'Creando…' : 'Crear asignación'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Filtros */}
-      <div className="mb-6 flex flex-wrap gap-3">
-        <button
-          onClick={() => setFiltro('todas')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-            filtro === 'todas'
-              ? 'bg-sky-600 text-white shadow-lg'
-              : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-          }`}
-        >
-          Todas
-        </button>
-        <button
-          onClick={() => setFiltro('activas')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-            filtro === 'activas'
-              ? 'bg-green-600 text-white shadow-lg'
-              : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-          }`}
-        >
-          Activas
-        </button>
-        <button
-          onClick={() => setFiltro('completada')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-            filtro === 'completada'
-              ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-          }`}
-        >
-          Completadas
-        </button>
-        <button
-          onClick={() => setFiltro('cancelada')}
-          className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-            filtro === 'cancelada'
-              ? 'bg-red-600 text-white shadow-lg'
-              : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-          }`}
-        >
-          Canceladas
-        </button>
-      </div>
-
-      {/* Mensajes de error */}
-      {(error || formError) && (
-        <div className="p-4 bg-red-900/30 text-red-300 border border-red-500 rounded-md mb-6" role="alert">
-          {error || formError}
-        </div>
-      )}
-
-      {/* Lista de asignaciones */}
-      <div>
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-2xl font-semibold text-white font-montserrat">
-            {filtro === 'todas' ? 'Todas las Asignaciones' : `Asignaciones ${filtro.charAt(0).toUpperCase() + filtro.slice(1)}`}
-          </h2>
-          <button
-            onClick={reload}
-            disabled={loading}
-            className={`py-2 px-4 bg-green-600 text-white rounded-md transition duration-150 ease-in-out 
-                      ${loading ? 'cursor-not-allowed opacity-60' : 'hover:bg-green-700 cursor-pointer'}`}
-          >
-            {loading ? 'Cargando...' : ' Actualizar'}
-          </button>
-        </div>
-
-        {loading && asignaciones.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-sky-400 mb-4"></div>
-            <p className="text-white italic">Cargando asignaciones...</p>
-          </div>
-        ) : asignacionesFiltradas.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">No hay asignaciones {filtro !== 'todas' ? filtro : ''}</p>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {asignacionesFiltradas.map((asignacion) => (
-              <div
-                key={asignacion.asignacion_id}
-                className={`p-5 border rounded-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
-                  asignacion.estado === 'activa'
-                    ? 'bg-green-900/20 border-green-500'
-                    : asignacion.estado === 'completada'
-                    ? 'bg-blue-900/20 border-blue-500'
-                    : 'bg-red-900/20 border-red-500'
-                }`}
-              >
-                {/* Header de la asignación */}
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-1">
-                      {asignacion.chofer_completo}
-                    </h3>
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                        asignacion.estado === 'activa'
-                          ? 'bg-green-600 text-white'
-                          : asignacion.estado === 'completada'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-red-600 text-white'
-                      }`}
-                    >
-                      {asignacion.estado.toUpperCase()}
-                    </span>
-                  </div>
-
-                  {/* Botones de acción (solo admin) */}
-                  {isAdmin && (
-                    <div className="flex gap-2">
-                      {asignacion.estado === 'activa' && (
-                        <>
-                          <button
-                            onClick={() => handleCambiarEstado(asignacion.asignacion_id, 'completada')}
-                            disabled={actionLoading}
-                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 px-3 text-sm transition"
-                            title="Marcar como completada"
-                          >
-                             Completar
-                          </button>
-                          <button
-                            onClick={() => handleCambiarEstado(asignacion.asignacion_id, 'cancelada')}
-                            disabled={actionLoading}
-                            className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-md py-2 px-3 text-sm transition"
-                            title="Cancelar asignación"
-                          >
-                             Cancelar
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={() => handleEliminar(asignacion.asignacion_id)}
-                        disabled={actionLoading}
-                        className="bg-red-600 hover:bg-red-700 text-white rounded-md py-2 px-3 text-sm transition"
-                        title="Eliminar asignación"
-                      >
-                         Eliminar
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Información de la asignación */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Chofer */}
-                  <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">👤 Chofer</p>
-                    <p className="text-white font-semibold">{asignacion.chofer_completo}</p>
-                    <p className="text-gray-300 text-sm">{asignacion.chofer_email}</p>
-                  </div>
-
-                  {/* Vehículo */}
-                  <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">🚗 Vehículo</p>
-                    <p className="text-white font-semibold">{asignacion.vehiculo_completo}</p>
-                    <p className={`text-sm ${asignacion.vehiculo_disponible ? 'text-green-400' : 'text-yellow-400'}`}>
-                      {asignacion.vehiculo_disponible ? 'Disponible' : 'En uso'}
-                    </p>
-                  </div>
-
-                  {/* Ruta */}
-                  <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">🛣️ Ruta</p>
-                    <p className="text-white font-semibold">{asignacion.nombre_ruta}</p>
-                  </div>
-
-                  {/* Horario */}
-                  <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">📅 Horario</p>
-                    <p className="text-white font-semibold">
-                      {asignacion.dias_semana && asignacion.dias_semana.length > 0
-                        ? formatearHorario(asignacion.dias_semana, asignacion.hora_inicio, asignacion.hora_fin)
-                        : 'Sin horario definido'}
-                    </p>
-                  </div>
-
-                  {/* Vigente desde */}
-                  <div className="bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">📆 Vigente desde</p>
-                    <p className="text-white font-semibold">
-                      {new Date(asignacion.fecha_inicio).toLocaleDateString('es-ES')}
-                    </p>
-                  </div>
-
-                  {/* Asignado por */}
-                  {asignacion.admin_completo && (
-                    <div className="bg-slate-800/50 p-3 rounded-lg">
-                      <p className="text-gray-400 text-sm mb-1">👨‍💼 Asignado por</p>
-                      <p className="text-white font-semibold">{asignacion.admin_completo}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Observaciones */}
-                {asignacion.observaciones && (
-                  <div className="mt-4 bg-slate-800/50 p-3 rounded-lg">
-                    <p className="text-gray-400 text-sm mb-1">📝 Observaciones</p>
-                    <p className="text-gray-300">{asignacion.observaciones}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <ConfirmDialog
+        open={Boolean(confirm)}
+        title={confirm?.title}
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        tone={confirm?.tone}
+        busy={actionLoading}
+        onCancel={() => setConfirm(null)}
+        onConfirm={ejecutarConfirmacion}
+      />
     </div>
   );
 };

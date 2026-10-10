@@ -8,13 +8,13 @@ export const inputClass =
   'h-9 w-full rounded-md border border-[var(--line-strong)] bg-[var(--raised)] px-3 text-sm text-[var(--text)] placeholder:text-[var(--text-faint)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]';
 
 export const buttonPrimaryClass =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--signal)] px-4 text-sm font-semibold text-[var(--canvas)] transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--canvas)] disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[var(--signal)] px-4 text-sm font-semibold text-[var(--canvas)] transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--canvas)] disabled:pointer-events-none disabled:opacity-50';
 
 export const buttonGhostClass =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--line-strong)] px-4 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex h-11 items-center justify-center gap-2 rounded-md border border-[var(--line-strong)] px-4 text-sm font-medium text-[var(--text)] transition-colors hover:bg-[var(--raised)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] disabled:pointer-events-none disabled:opacity-50';
 
 export const buttonDangerClass =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--danger)] px-4 text-sm font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)] disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex h-11 items-center justify-center gap-2 rounded-md border border-[var(--danger)] px-4 text-sm font-medium text-[var(--danger)] transition-colors hover:bg-[var(--danger)]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--danger)] disabled:pointer-events-none disabled:opacity-50';
 
 // Botón-icono con touch target de 44x44 px.
 export const iconButtonClass =

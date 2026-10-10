@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router
 import { lazy, Suspense, useState, useEffect } from 'react'
 import useAuth from './hooks/useAuth';
 import RoleRoute from './components/RoleRoute';
+import { supabase } from './Supabase/Conection';
+import { LogoutIcon } from '@/components/ui/icons';
+import { iconButtonClass } from '@/components/ui/tokens';
 
 // Utilizando lazy loading para los componentes
 const Mapa = lazy(() => import('./Mapbox/Mapa'));
@@ -52,6 +55,14 @@ function AppContent() {
       : []),
   ];
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+    }
+  };
+
   const navLinkClass = ({ isActive }) =>
     [
       'inline-flex min-h-[44px] items-center rounded-md px-3.5 text-sm font-medium transition-colors',
@@ -72,24 +83,7 @@ function AppContent() {
                 Recolección
               </span>
 
-              {/* Hamburguesa (móvil) */}
-              <button
-                type="button"
-                aria-label={isMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
-                aria-expanded={isMenuOpen}
-                onClick={() => setIsMenuOpen(prev => !prev)}
-                className="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-md text-[var(--text-mute)] transition-colors hover:bg-[var(--raised)] hover:text-[var(--text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] md:hidden"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  {isMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
-
-              <ul className={`${isMenuOpen ? 'flex' : 'hidden'} w-full flex-col gap-1 md:flex md:w-auto md:flex-row md:items-center md:gap-1`}>
+              <ul className={`${isMenuOpen ? 'flex' : 'hidden'} order-last w-full flex-col gap-1 md:order-none md:flex md:w-auto md:flex-row md:items-center md:gap-1`}>
                 {navItems.map((item) => (
                   <li key={item.to}>
                     <NavLink
@@ -103,6 +97,35 @@ function AppContent() {
                   </li>
                 ))}
               </ul>
+
+              <div className="ml-auto flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  aria-label="Cerrar sesión"
+                  title="Cerrar sesión"
+                  className={iconButtonClass}
+                >
+                  <LogoutIcon />
+                </button>
+
+                {/* Hamburguesa (móvil) */}
+                <button
+                  type="button"
+                  aria-label={isMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+                  aria-expanded={isMenuOpen}
+                  onClick={() => setIsMenuOpen(prev => !prev)}
+                  className={`${iconButtonClass} md:hidden`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    {isMenuOpen ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    )}
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </nav>
